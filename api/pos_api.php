@@ -89,7 +89,7 @@ try {
             }
 
             $logoHtml = $logoDataUri
-                ? "<div style='margin-bottom:6px'><img src='$logoDataUri' alt='logo' style='max-height:44px;max-width:150px;object-fit:contain'></div>"
+                ? "<div style='margin-bottom:6px'><img src='$logoDataUri' alt='logo' style='max-height:54px;max-width:220px;object-fit:contain'></div>"
                 : '';
 
             $receiptHtml = "
