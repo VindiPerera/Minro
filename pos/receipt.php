@@ -43,9 +43,19 @@ $isPrint  = isset($_GET['print']);
   td { padding: 3px 0; }
   .no-print-bar { text-align: center; padding: 20px; }
   @media print {
-    body { background: white; }
-    .no-print-bar { display: none; }
+    body { background: white; margin: 0; padding: 0; }
+    .no-print-bar { display: none !important; }
     .receipt-wrap { margin: 0; border-radius: 0; box-shadow: none; max-width: 80mm; }
+    .receipt-header {
+      background: white !important;
+      color: #111 !important;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    .receipt-header img {
+      filter: none !important;
+      max-height: 40px !important;
+    }
   }
 </style>
 </head>
