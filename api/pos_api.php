@@ -80,9 +80,11 @@ try {
             $discHtml  = $discount > 0 ? "<tr><td style='color:#666'>Discount</td><td style='text-align:right;color:#dc2626'>− " . money($discount) . "</td></tr>" : '';
             $changeHtml = "<tr><td style='color:#666'>Paid (" . ucfirst($paymentMethod) . ")</td><td style='text-align:right'>" . money($paidAmount) . "</td></tr><tr><td style='color:#666'>Change</td><td style='text-align:right'>" . money($changeAmount) . "</td></tr>";
 
+            $logoUrl = BASE_URL . '/assets/logo.png';
             $receiptHtml = "
             <div id='receiptPrint' style='font-family:Courier New,monospace;font-size:13px;max-width:360px;margin:0 auto;'>
               <div style='background:#1e293b;color:white;padding:16px;text-align:center;border-radius:8px 8px 0 0'>
+                <div style='margin-bottom:6px'><img src='$logoUrl' alt='logo' style='max-height:44px;max-width:150px;object-fit:contain;filter:brightness(0) invert(1)'></div>
                 <div style='font-size:20px;font-weight:800;letter-spacing:2px'>$companyName</div>
                 " . ($companyAddr ? "<div style='font-size:11px;opacity:.8'>$companyAddr</div>" : '') . "
                 " . ($companyPhone ? "<div style='font-size:11px;opacity:.8'>$companyPhone</div>" : '') . "
