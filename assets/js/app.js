@@ -109,24 +109,42 @@ $(document).ready(function () {
       <html><head><title>Print</title>
       <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
       <style>
-        body { font-family: 'Courier New', monospace; background: white; color: black; }
+        body { font-family: 'Courier New', monospace; background: white; color: black; margin: 0; padding: 0; }
         .no-print { display: none; }
-        img { filter: none !important; }
-        div[style*="background:#1e293b"], div[style*="background: #1e293b"] {
-          background: white !important; color: #111 !important;
-        }
       </style>
       </head><body>
       ${el.innerHTML}
       <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"><\/script>
       <script>
+        function fixForPrint() {
+          // Fix header: dark bg -> white, white text -> dark
+          document.querySelectorAll('div').forEach(function(d) {
+            var bg = d.style.background || d.style.backgroundColor;
+            if (bg && (bg.indexOf('#1e293b') !== -1 || bg.indexOf('rgb(30, 41, 59)') !== -1)) {
+              d.style.background = 'white';
+              d.style.color = '#111';
+            }
+          });
+          // Fix images: remove invert filter so logo prints in original colors
+          document.querySelectorAll('img').forEach(function(img) {
+            img.style.filter = 'none';
+            img.style.webkitFilter = 'none';
+          });
+          // Fix any white/light text that was meant for dark bg
+          document.querySelectorAll('div[style]').forEach(function(d) {
+            if (d.style.color === 'white' || d.style.color === 'rgb(255, 255, 255)') {
+              d.style.color = '#111';
+            }
+          });
+        }
         function doPrint() {
+          fixForPrint();
           if (typeof JsBarcode !== 'undefined') {
             document.querySelectorAll('[data-barcode]').forEach(function(el) {
               try { JsBarcode(el, el.getAttribute('data-barcode'), { format:'CODE128', width:2, height:50, displayValue:true, fontSize:11 }); } catch(e) {}
             });
           }
-          setTimeout(function() { window.print(); window.close(); }, 300);
+          setTimeout(function() { window.print(); window.close(); }, 400);
         }
         window.onload = function() {
           var imgs = document.querySelectorAll('img');
