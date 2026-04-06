@@ -27,7 +27,6 @@ $(document).ready(function () {
   // -------------------------------------------------------
   if ($.fn.DataTable) {
     $.extend(true, $.fn.dataTable.defaults, {
-      responsive: true,
       language: {
         search: '<i class="fas fa-search"></i>',
         searchPlaceholder: 'Search...',

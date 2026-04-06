@@ -134,7 +134,7 @@ try {
         // ----------------------------------------------------------------
         case 'search_products':
             $q = trim($_GET['q'] ?? '');
-            $stmt = $db->prepare("SELECT id, code, name, selling_price, stock_quantity FROM products WHERE status=1 AND type IN ('accessory','both') AND (name LIKE ? OR code LIKE ?) LIMIT 10");
+            $stmt = $db->prepare("SELECT id, code, name, selling_price, stock_quantity FROM products WHERE status=1 AND type='accessory' AND (name LIKE ? OR code LIKE ?) LIMIT 10");
             $stmt->execute(["%$q%", "%$q%"]);
             echo json_encode(['success' => true, 'products' => $stmt->fetchAll()]);
             break;

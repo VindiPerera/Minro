@@ -61,10 +61,11 @@ $serviceTotal = array_sum(array_column($services, 'price'));
 
   /* ---- STICKER ---- */
   .sticker-page { display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
-  .sticker { width: 60mm; border: 2px dashed #334155; padding: 10px; text-align: center; background: white; margin: 8px; display: inline-block; vertical-align: top; }
-  .sticker-brand { font-size: 18px; font-weight: 800; letter-spacing: 1px; color: #1e293b; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px; margin-bottom: 6px; }
-  .sticker-job   { font-size: 14px; font-weight: 700; color: #2563eb; }
-  .sticker-device{ font-size: 11px; color: #475569; }
+  .sticker { width: 70mm; border: 2px dashed #334155; padding: 8px 12px; text-align: center; background: white; margin: 8px; display: inline-block; vertical-align: top; }
+  .sticker-company { font-size: 11px; font-weight: 700; letter-spacing: 1px; color: #475569; text-transform: uppercase; margin-bottom: 4px; }
+  .sticker-job   { font-size: 15px; font-weight: 800; color: #2563eb; margin: 3px 0; }
+  .sticker-device{ font-size: 12px; font-weight: 600; color: #1e293b; margin-bottom: 3px; }
+  .sticker-meta  { font-size: 9px; color: #94a3b8; }
   .stickers-wrap { display: flex; flex-wrap: wrap; justify-content: center; padding: 20px; }
 
   @media print {
@@ -94,13 +95,13 @@ $serviceTotal = array_sum(array_column($services, 'price'));
 <div class="stickers-wrap">
   <?php for ($i = 0; $i < 4; $i++): ?>
   <div class="sticker">
-    <div class="sticker-brand"><?= e($companyName) ?></div>
-    <svg class="stickerBarcode" data-value="<?= e($job['job_number']) ?>"></svg>
+    <div class="sticker-company"><?= e($companyName) ?></div>
+    <svg class="stickerBarcode" data-value="<?= e($job['barcode'] ?: $job['job_number']) ?>"></svg>
     <div class="sticker-job"><?= e($job['job_number']) ?></div>
     <div class="sticker-device"><?= e($job['device_brand']) ?> <?= e($job['device_model']) ?></div>
-    <div style="font-size:10px;color:#94a3b8;margin-top:4px"><?= date('d/m/Y', strtotime($job['created_at'])) ?></div>
+    <div class="sticker-meta"><?= date('d/m/Y', strtotime($job['created_at'])) ?></div>
     <?php if ($job['device_imei']): ?>
-    <div style="font-size:9px;color:#94a3b8">IMEI: <?= e($job['device_imei']) ?></div>
+    <div class="sticker-meta">IMEI: <?= e($job['device_imei']) ?></div>
     <?php endif; ?>
   </div>
   <?php endfor; ?>
@@ -219,7 +220,7 @@ $serviceTotal = array_sum(array_column($services, 'price'));
 window.onload = function() {
   <?php if ($sticker): ?>
   document.querySelectorAll('.stickerBarcode').forEach(function(el) {
-    try { JsBarcode(el, el.getAttribute('data-value'), { format:'CODE128', width:1.5, height:40, displayValue:false, margin:2, lineColor:'#000', background:'#fff' }); } catch(e) {}
+    try { JsBarcode(el, el.getAttribute('data-value'), { format:'CODE128', width:1.8, height:50, displayValue:true, fontSize:10, margin:2, lineColor:'#000', background:'#fff' }); } catch(e) {}
   });
   <?php else: ?>
   try { JsBarcode('#ticketBarcode', '<?= e($job['job_number']) ?>', { format:'CODE128', width:2, height:55, displayValue:false, margin:4, lineColor:'#000', background:'#fff' }); } catch(e) {}

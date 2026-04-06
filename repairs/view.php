@@ -20,8 +20,7 @@ $parts->execute([$id]);
 $parts = $parts->fetchAll();
 
 $technicians = $db->query("SELECT id, name FROM users WHERE role IN ('technician','admin') AND status=1 ORDER BY name")->fetchAll();
-$allServices = $db->query("SELECT * FROM repair_services WHERE status=1 ORDER BY name")->fetchAll();
-$allParts    = $db->query("SELECT p.*, c.name as cat_name FROM products p LEFT JOIN categories c ON p.category_id=c.id WHERE p.status=1 AND p.type IN ('part','both') ORDER BY p.name")->fetchAll();
+$allParts    = $db->query("SELECT p.* FROM products p WHERE p.status=1 AND p.type='part' ORDER BY p.name")->fetchAll();
 
 // Check if invoice exists
 $invoice = $db->prepare("SELECT * FROM repair_invoices WHERE job_id=? LIMIT 1");
@@ -336,25 +335,16 @@ $showTicket = isset($_GET['print_ticket']);
 <div class="modal fade" id="addServiceModal" tabindex="-1">
   <div class="modal-dialog">
     <div class="modal-content">
-      <div class="modal-header"><h6 class="modal-title">Add Service</h6><button class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-header"><h6 class="modal-title"><i class="fas fa-wrench me-2 text-success"></i>Add Service</h6><button class="btn-close" data-bs-dismiss="modal"></button></div>
       <form method="POST">
         <input type="hidden" name="action" value="add_service">
         <div class="modal-body">
           <div class="mb-3">
-            <label class="form-label">Service</label>
-            <select name="service_id" id="modalServiceSelect" class="form-select select2">
-              <option value="">— Select or type custom —</option>
-              <?php foreach ($allServices as $s): ?>
-              <option value="<?= $s['id'] ?>" data-price="<?= $s['base_price'] ?>"><?= e($s['name']) ?></option>
-              <?php endforeach; ?>
-            </select>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Service Name</label>
-            <input type="text" name="service_name" id="modalServiceName" class="form-control" placeholder="Service description" required>
+            <label class="form-label">Service Description <span class="text-danger">*</span></label>
+            <input type="text" name="service_name" id="modalServiceName" class="form-control" placeholder="e.g. Screen Replacement, Battery Change" required autofocus>
           </div>
           <div class="mb-0">
-            <label class="form-label">Price</label>
+            <label class="form-label">Price <span class="text-danger">*</span></label>
             <div class="input-group">
               <span class="input-group-text">Rs.</span>
               <input type="number" name="service_price" id="modalServicePrice" class="form-control" placeholder="0.00" step="0.01" min="0" required>
@@ -363,7 +353,7 @@ $showTicket = isset($_GET['print_ticket']);
         </div>
         <div class="modal-footer">
           <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button class="btn btn-success" type="submit">Add Service</button>
+          <button class="btn btn-success" type="submit"><i class="fas fa-plus me-1"></i>Add Service</button>
         </div>
       </form>
     </div>
@@ -424,17 +414,6 @@ $extraScripts = "
 <script>
 JsBarcode('#jobBarcode', '" . e($job['job_number']) . "', { format:'CODE128', width:1.8, height:50, displayValue:true, fontSize:11, lineColor:'#e2e8f0', background:'transparent' });
 
-// Service modal auto-fill
-$('#modalServiceSelect').on('change', function() {
-  const opt   = $(this).find(':selected');
-  const name  = opt.text().split(' (Rs.')[0];
-  const price = opt.data('price') || 0;
-  if (opt.val()) {
-    $('#modalServiceName').val(name);
-    $('#modalServicePrice').val(parseFloat(price).toFixed(2));
-  }
-});
-
 // Part modal
 $('#partSelect').on('change', function() {
   const opt   = $(this).find(':selected');
@@ -459,8 +438,8 @@ $('#partQty, #partPrice').on('input', calcPartTotal);
 
 // Select2 in modals
 $(document).ready(function() {
-  $('#modalServiceSelect, #partSelect').select2({ theme:'bootstrap-5', dropdownParent: \$('#addServiceModal, #addPartModal') });
-  $('select.select2').select2({ theme:'bootstrap-5' });
+  $('#partSelect').select2({ theme:'bootstrap-5', dropdownParent: $('#addPartModal') });
+  $('select.select2:not(#partSelect)').select2({ theme:'bootstrap-5' });
 });
 " . ($showTicket ? "$(document).ready(function() { setTimeout(() => { window.open('" . BASE_URL . "/repairs/job_ticket.php?id=$id', '_blank'); }, 800); });" : "") . "
 </script>

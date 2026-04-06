@@ -54,8 +54,8 @@ $user = currentUser();
     </a>
 
     <a href="<?= BASE_URL ?>/inventory/categories.php" class="nav-item <?= isActive('/inventory/categories') ?>">
-      <i class="fas fa-tags nav-icon"></i>
-      <span>Categories</span>
+      <i class="fas fa-mobile-alt nav-icon"></i>
+      <span>Brands &amp; Models</span>
     </a>
 
     <a href="<?= BASE_URL ?>/inventory/stock_in.php" class="nav-item <?= isActive('/inventory/stock_in') ?>">

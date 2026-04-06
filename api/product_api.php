@@ -13,39 +13,60 @@ try {
         // ─── Search products (for Select2 AJAX) ────────────────────────────
         case 'search':
             $q    = trim($_GET['q'] ?? '');
-            $type = $_GET['type'] ?? ''; // 'accessory', 'part', 'both', or empty for all
-            $sql  = "SELECT id, code, name, selling_price, stock_quantity, unit, type
+            $type = $_GET['type'] ?? ''; // 'sale'=accessory, 'part'=part, empty=all
+            $sql  = "SELECT id, code, barcode, name, brand, model, quality, type, selling_price, stock_quantity, unit
                      FROM products WHERE status=1";
             $params = [];
             if ($q) {
-                $sql .= " AND (name LIKE ? OR code LIKE ?)";
+                $sql .= " AND (name LIKE ? OR code LIKE ? OR barcode LIKE ?)";
+                $params[] = "%$q%";
                 $params[] = "%$q%";
                 $params[] = "%$q%";
             }
             if ($type === 'sale') {
-                $sql .= " AND type IN ('accessory','both')";
+                $sql .= " AND type='accessory'";
             } elseif ($type === 'part') {
-                $sql .= " AND type IN ('part','both')";
+                $sql .= " AND type='part'";
             }
             $sql .= " ORDER BY name LIMIT 30";
             $stmt = $db->prepare($sql);
             $stmt->execute($params);
             $rows = $stmt->fetchAll();
 
-            // Format for Select2
             $results = array_map(function($r) {
                 return [
-                    'id'    => $r['id'],
-                    'text'  => $r['code'] . ' — ' . $r['name'] . ' (Stock: ' . $r['stock_quantity'] . ' ' . $r['unit'] . ')',
-                    'name'  => $r['name'],
-                    'code'  => $r['code'],
-                    'price' => (float)$r['selling_price'],
-                    'stock' => (int)$r['stock_quantity'],
-                    'unit'  => $r['unit'],
-                    'type'  => $r['type'],
+                    'id'      => $r['id'],
+                    'text'    => $r['code'] . ' — ' . $r['name'] . ' (Stock: ' . $r['stock_quantity'] . ' ' . $r['unit'] . ')',
+                    'name'    => $r['name'],
+                    'code'    => $r['code'],
+                    'barcode' => $r['barcode'] ?? '',
+                    'brand'   => $r['brand'] ?? '',
+                    'model'   => $r['model'] ?? '',
+                    'quality' => $r['quality'] ?? '',
+                    'type'    => $r['type'],
+                    'price'   => (float)$r['selling_price'],
+                    'stock'   => (int)$r['stock_quantity'],
+                    'unit'    => $r['unit'],
                 ];
             }, $rows);
             echo json_encode(['results' => $results]);
+            break;
+
+        case 'brands':
+            $brands = $db->query("SELECT id, name FROM brands WHERE status=1 ORDER BY name")->fetchAll();
+            echo json_encode(['results' => array_map(fn($b) => ['id'=>$b['id'],'text'=>$b['name']], $brands)]);
+            break;
+
+        case 'models':
+            $brandName = trim($_GET['brand'] ?? '');
+            $sql = "SELECT m.id, m.name FROM phone_models m JOIN brands b ON b.id=m.brand_id WHERE m.status=1";
+            $params = [];
+            if ($brandName) { $sql .= " AND b.name=?"; $params[] = $brandName; }
+            $sql .= " ORDER BY m.name";
+            $stmt = $db->prepare($sql);
+            $stmt->execute($params);
+            $models = $stmt->fetchAll();
+            echo json_encode(['results' => array_map(fn($m) => ['id'=>$m['id'],'text'=>$m['name']], $models)]);
             break;
 
         // ─── Get single product details ────────────────────────────────────

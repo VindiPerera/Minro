@@ -6,27 +6,26 @@ $pageTitle = 'Inventory';
 $db = getDB();
 
 $filter   = $_GET['filter']   ?? 'all';
-$category = $_GET['category'] ?? 'all';
-$type     = $_GET['type']     ?? 'all';
+$typeFilter = $_GET['type_filter'] ?? 'all';
 $search   = trim($_GET['search'] ?? '');
 
 $where  = ['p.status=1'];
 $params = [];
 
-if ($filter === 'low_stock')  { $where[] = 'p.stock_quantity <= p.low_stock_threshold'; }
-if ($filter === 'out_stock')  { $where[] = 'p.stock_quantity <= 0'; }
-if ($filter === 'parts')      { $where[] = "p.type IN ('part','both')"; }
-if ($filter === 'accessories'){ $where[] = "p.type IN ('accessory','both')"; }
-if ($category !== 'all')      { $where[] = 'p.category_id=?'; $params[] = $category; }
-if ($type !== 'all')          { $where[] = 'p.type=?'; $params[] = $type; }
-if ($search)                  { $where[] = '(p.name LIKE ? OR p.code LIKE ?)'; $params[] = "%$search%"; $params[] = "%$search%"; }
+if ($filter === 'low_stock')             { $where[] = 'p.stock_quantity <= p.low_stock_threshold AND p.stock_quantity > 0'; }
+if ($filter === 'out_stock')             { $where[] = 'p.stock_quantity <= 0'; }
+if ($typeFilter === 'part')              { $where[] = "p.type='part'"; }
+if ($typeFilter === 'accessory')         { $where[] = "p.type='accessory'"; }
+$brandFilter = trim($_GET['brand_filter'] ?? '');
+if ($brandFilter)                        { $where[] = 'p.brand=?'; $params[] = $brandFilter; }
+if ($search)                             { $where[] = '(p.name LIKE ? OR p.code LIKE ? OR p.barcode LIKE ? OR p.brand LIKE ? OR p.model LIKE ?)'; $params[] = "%$search%"; $params[] = "%$search%"; $params[] = "%$search%"; $params[] = "%$search%"; $params[] = "%$search%"; }
 
 $whereClause = implode(' AND ', $where);
-$stmt = $db->prepare("SELECT p.*, c.name as cat_name FROM products p LEFT JOIN categories c ON p.category_id=c.id WHERE $whereClause ORDER BY p.name");
+$stmt = $db->prepare("SELECT p.* FROM products p WHERE $whereClause ORDER BY p.name");
 $stmt->execute($params);
 $products = $stmt->fetchAll();
 
-$categories = $db->query("SELECT * FROM categories WHERE status=1 ORDER BY name")->fetchAll();
+$brands = $db->query("SELECT name FROM brands WHERE status=1 ORDER BY name")->fetchAll(PDO::FETCH_COLUMN);
 
 // Stats
 $totalProducts  = $db->query("SELECT COUNT(*) FROM products WHERE status=1")->fetchColumn();
@@ -79,34 +78,33 @@ require_once __DIR__ . '/../includes/header.php';
 <div class="card mb-4">
   <div class="card-body py-3">
     <div class="d-flex flex-wrap gap-2 mb-3">
-      <?php $filters = ['all'=>'All Products','low_stock'=>'⚠ Low Stock','out_stock'=>'✗ Out of Stock','parts'=>'Parts','accessories'=>'Accessories']; ?>
+      <?php $filters = ['all'=>'All Products','low_stock'=>'⚠ Low Stock','out_stock'=>'✗ Out of Stock']; ?>
       <?php foreach ($filters as $f => $l): ?>
-      <a href="?filter=<?= $f ?>&category=<?= urlencode($category) ?>&search=<?= urlencode($search) ?>"
+      <a href="?filter=<?= $f ?>&type_filter=<?= urlencode($typeFilter) ?>&search=<?= urlencode($search) ?>"
          class="btn btn-sm <?= $filter===$f ? 'btn-primary' : 'btn-outline-secondary' ?>"><?= $l ?></a>
       <?php endforeach; ?>
     </div>
     <form method="GET" class="row g-2">
       <input type="hidden" name="filter" value="<?= e($filter) ?>">
       <div class="col-sm-4">
-        <input type="text" name="search" class="form-control form-control-sm" placeholder="Search by name or code..." value="<?= e($search) ?>">
+        <input type="text" name="search" class="form-control form-control-sm" placeholder="Search by name, code, barcode, brand, model..." value="<?= e($search) ?>">
       </div>
       <div class="col-sm-3">
-        <select name="category" class="form-select form-select-sm">
-          <option value="all">All Categories</option>
-          <?php foreach ($categories as $c): ?>
-          <option value="<?= $c['id'] ?>" <?= $category==$c['id'] ? 'selected':'' ?>><?= e($c['name']) ?></option>
+        <select name="type_filter" class="form-select form-select-sm">
+          <option value="all">All Types</option>
+          <option value="part" <?= $typeFilter==='part'?'selected':'' ?>>Parts (Repairs)</option>
+          <option value="accessory" <?= $typeFilter==='accessory'?'selected':'' ?>>Accessories (Retail)</option>
+        </select>
+      </div>
+      <div class="col-sm-3">
+        <select name="brand_filter" class="form-select form-select-sm" onchange="this.form.submit()">
+          <option value="">All Brands</option>
+          <?php foreach ($brands as $bn): ?>
+          <option value="<?= e($bn) ?>" <?= ($_GET['brand_filter']??'')===$bn?'selected':'' ?>><?= e($bn) ?></option>
           <?php endforeach; ?>
         </select>
       </div>
-      <div class="col-sm-2">
-        <select name="type" class="form-select form-select-sm">
-          <option value="all">All Types</option>
-          <option value="accessory" <?= $type==='accessory'?'selected':'' ?>>Accessories</option>
-          <option value="part" <?= $type==='part'?'selected':'' ?>>Parts</option>
-          <option value="both" <?= $type==='both'?'selected':'' ?>>Both</option>
-        </select>
-      </div>
-      <div class="col-sm-3 d-flex gap-2">
+      <div class="col-sm-2 d-flex gap-2">
         <button type="submit" class="btn btn-sm btn-primary flex-grow-1"><i class="fas fa-filter me-1"></i>Filter</button>
         <a href="?" class="btn btn-sm btn-outline-secondary">Clear</a>
         <a href="<?= BASE_URL ?>/inventory/stock_in.php" class="btn btn-sm btn-outline-info" title="Stock In"><i class="fas fa-truck-loading"></i></a>
@@ -123,9 +121,10 @@ require_once __DIR__ . '/../includes/header.php';
         <thead>
           <tr>
             <th>Code</th>
-            <th>Name</th>
-            <th>Category</th>
+            <th>Barcode</th>
+            <th>Name / Brand / Model</th>
             <th>Type</th>
+            <th>Quality</th>
             <th class="text-end">Cost</th>
             <th class="text-end">Sell Price</th>
             <th class="text-center">Stock</th>
@@ -140,14 +139,27 @@ require_once __DIR__ . '/../includes/header.php';
           <tr>
             <td><code><?= e($p['code']) ?></code></td>
             <td>
-              <div class="fw-semibold small"><?= e($p['name']) ?></div>
-              <?php if ($p['description']): ?><div class="text-muted" style="font-size:11px"><?= e(substr($p['description'],0,40)) ?>...</div><?php endif; ?>
+              <?php if (!empty($p['barcode'])): ?>
+              <code class="text-success small"><?= e($p['barcode']) ?></code>
+              <?php else: ?><span class="text-muted small">—</span><?php endif; ?>
             </td>
-            <td class="small text-muted"><?= e($p['cat_name'] ?? '—') ?></td>
             <td>
-              <span class="badge <?= $p['type']==='accessory'?'bg-info':($p['type']==='part'?'bg-warning text-dark':'bg-secondary') ?>">
-                <?= ucfirst($p['type']) ?>
+              <div class="fw-semibold small"><?= e($p['name']) ?></div>
+              <?php if (!empty($p['brand']) || !empty($p['model'])): ?>
+              <div class="text-muted" style="font-size:11px">
+                <?= $p['brand'] ? e($p['brand']) : '' ?><?= ($p['brand'] && $p['model']) ? ' · ' : '' ?><?= $p['model'] ? e($p['model']) : '' ?>
+              </div>
+              <?php endif; ?>
+            </td>
+            <td>
+              <span class="badge <?= $p['type']==='part'?'bg-warning text-dark':'bg-info' ?>">
+                <?= $p['type']==='part'?'Part':'Accessory' ?>
               </span>
+            </td>
+            <td>
+              <?php if (!empty($p['quality'])): ?>
+              <span class="badge bg-secondary-subtle text-secondary"><?= e($p['quality']) ?></span>
+              <?php else: ?><span class="text-muted small">—</span><?php endif; ?>
             </td>
             <td class="text-end small"><?= money((float)$p['cost_price']) ?></td>
             <td class="text-end fw-semibold"><?= money((float)$p['selling_price']) ?></td>
@@ -178,7 +190,7 @@ require_once __DIR__ . '/../includes/header.php';
           </tr>
           <?php endforeach; ?>
           <?php if (empty($products)): ?>
-          <tr><td colspan="9" class="text-center py-5 text-muted">
+          <tr><td colspan="10" class="text-center py-5 text-muted">
             <i class="fas fa-box-open fa-3x mb-3 d-block" style="color:#334155"></i>No products found
           </td></tr>
           <?php endif; ?>

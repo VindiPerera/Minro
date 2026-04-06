@@ -42,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 // Load products (with stock info)
-$products = $db->query("SELECT id, code, name, stock_quantity, unit, type FROM products WHERE status=1 ORDER BY name")->fetchAll();
+$products = $db->query("SELECT id, code, name, brand, model, stock_quantity, unit, type FROM products WHERE status=1 ORDER BY name")->fetchAll();
 
 // Recent stock-in history
 $history = $db->query("

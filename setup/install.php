@@ -75,22 +75,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         ) ENGINE=InnoDB");
 
-        // CATEGORIES
-        $conn->exec("CREATE TABLE categories (
+        // BRANDS
+        $conn->exec("CREATE TABLE brands (
             id INT AUTO_INCREMENT PRIMARY KEY,
             name VARCHAR(100) NOT NULL,
-            type ENUM('accessory','part','both') DEFAULT 'both',
-            description TEXT,
             status TINYINT DEFAULT 1
+        ) ENGINE=InnoDB");
+
+        // PHONE MODELS
+        $conn->exec("CREATE TABLE phone_models (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            brand_id INT NOT NULL,
+            name VARCHAR(150) NOT NULL,
+            status TINYINT DEFAULT 1,
+            FOREIGN KEY (brand_id) REFERENCES brands(id) ON DELETE CASCADE
         ) ENGINE=InnoDB");
 
         // PRODUCTS
         $conn->exec("CREATE TABLE products (
             id INT AUTO_INCREMENT PRIMARY KEY,
             code VARCHAR(50) UNIQUE NOT NULL,
+            barcode VARCHAR(100) UNIQUE DEFAULT NULL,
             name VARCHAR(200) NOT NULL,
-            category_id INT,
-            type ENUM('accessory','part','both') DEFAULT 'accessory',
+            brand VARCHAR(100) DEFAULT NULL,
+            model VARCHAR(150) DEFAULT NULL,
+            quality VARCHAR(50) DEFAULT NULL,
+            type ENUM('part','accessory') DEFAULT 'part',
             description TEXT,
             cost_price DECIMAL(12,2) DEFAULT 0.00,
             selling_price DECIMAL(12,2) DEFAULT 0.00,
@@ -98,8 +108,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             low_stock_threshold INT DEFAULT 5,
             unit VARCHAR(20) DEFAULT 'pcs',
             status TINYINT DEFAULT 1,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         ) ENGINE=InnoDB");
 
         // REPAIR SERVICES
@@ -265,18 +274,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Default technician
         $conn->exec("INSERT INTO users (name, email, password, role) VALUES ('Technician', 'tech@minro.lk', '" . password_hash('tech123', PASSWORD_DEFAULT) . "', 'technician')");
 
-        // Default categories
-        $conn->exec("INSERT INTO categories (name, type) VALUES
-            ('Screen & Display', 'part'),
-            ('Battery', 'part'),
-            ('Charging Port', 'part'),
-            ('Back Cover', 'part'),
-            ('Phone Cases', 'accessory'),
-            ('Screen Protectors', 'accessory'),
-            ('Chargers & Cables', 'accessory'),
-            ('Earphones & Headsets', 'accessory'),
-            ('Power Banks', 'accessory'),
-            ('General Parts', 'both')");
+        // Default brands
+        $conn->exec("INSERT INTO brands (name) VALUES
+            ('Samsung'),('Apple'),('Huawei'),('Xiaomi'),('OnePlus'),
+            ('Nokia'),('Motorola'),('Oppo'),('Vivo'),('Realme'),
+            ('Sony'),('LG'),('Generic')");
+
+        // Default phone models (brand_id matches insert order above)
+        $conn->exec("INSERT INTO phone_models (brand_id, name) VALUES
+            (1,'Galaxy S21'),(1,'Galaxy S22'),(1,'Galaxy S23'),(1,'Galaxy S24'),
+            (1,'Galaxy A54'),(1,'Galaxy A34'),(1,'Galaxy A14'),(1,'Galaxy M34'),
+            (1,'Galaxy Note 20'),(1,'Galaxy Note 10'),
+            (2,'iPhone 11'),(2,'iPhone 12'),(2,'iPhone 13'),(2,'iPhone 14'),
+            (2,'iPhone 15'),(2,'iPhone 16'),(2,'iPhone X'),(2,'iPhone XR'),
+            (2,'iPhone XS'),(2,'iPhone SE (2022)'),
+            (3,'P30 Pro'),(3,'P40 Pro'),(3,'P50 Pro'),(3,'Mate 20 Pro'),(3,'Mate 30 Pro'),(3,'Nova 9'),
+            (4,'Redmi Note 11'),(4,'Redmi Note 12'),(4,'Redmi Note 13'),(4,'Mi 11'),(4,'POCO X5 Pro'),
+            (5,'OnePlus 9'),(5,'OnePlus 10 Pro'),(5,'OnePlus Nord'),
+            (6,'Nokia G21'),(6,'Nokia G42'),
+            (7,'Moto G32'),(7,'Moto G52'),(7,'Moto G72'),
+            (8,'Reno 8'),(8,'A78'),(8,'Find X5'),
+            (9,'V25'),(9,'V29'),(9,'Y75'),
+            (10,'Realme 11 Pro'),(10,'Realme C55'),
+            (11,'Xperia 5 IV'),(11,'Xperia 1 IV'),
+            (12,'LG V50'),(12,'LG G8')");
 
         // Default repair services
         $conn->exec("INSERT INTO repair_services (name, description, base_price) VALUES
@@ -291,20 +312,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ('Speaker/Mic Repair', 'Fix speaker or microphone issues', 1000.00),
             ('General Diagnosis', 'Diagnose phone issues', 500.00)");
 
-        // Default products (sample accessories and parts)
-        $conn->exec("INSERT INTO products (code, name, category_id, type, cost_price, selling_price, stock_quantity, low_stock_threshold) VALUES
-            ('PRD-001', 'Samsung S21 AMOLED Display', 1, 'part', 8000.00, 12000.00, 5, 2),
-            ('PRD-002', 'iPhone 13 LCD Screen Assembly', 1, 'part', 15000.00, 22000.00, 3, 1),
-            ('PRD-003', 'Samsung Generic Battery 4000mAh', 2, 'part', 1200.00, 2000.00, 20, 5),
-            ('PRD-004', 'iPhone 12 Battery Original', 2, 'part', 2500.00, 4000.00, 10, 3),
-            ('PRD-005', 'Universal USB-C Charging Port', 3, 'part', 500.00, 900.00, 15, 5),
-            ('PRD-006', 'iPhone Lightning Port', 3, 'part', 800.00, 1400.00, 10, 3),
-            ('PRD-007', 'Silicone Phone Case - Universal', 5, 'accessory', 150.00, 350.00, 50, 10),
-            ('PRD-008', 'Tempered Glass Screen Protector', 6, 'accessory', 80.00, 200.00, 100, 20),
-            ('PRD-009', 'Type-C Fast Charger 20W', 7, 'accessory', 600.00, 1200.00, 30, 8),
-            ('PRD-010', 'iPhone Lightning Cable 1m', 7, 'accessory', 300.00, 700.00, 40, 10),
-            ('PRD-011', 'Wireless Earbuds TWS', 8, 'accessory', 1500.00, 3000.00, 15, 5),
-            ('PRD-012', '10000mAh Power Bank', 9, 'accessory', 1800.00, 3500.00, 12, 4)");
+        // Default products
+        $conn->exec("INSERT INTO products (code, barcode, name, brand, model, quality, type, cost_price, selling_price, stock_quantity, low_stock_threshold) VALUES
+            ('PRD-001', 'BC-PRD-001', 'Samsung S21 AMOLED Display', 'Samsung', 'Galaxy S21', 'Original', 'part', 8000.00, 12000.00, 5, 2),
+            ('PRD-002', 'BC-PRD-002', 'iPhone 13 LCD Screen Assembly', 'Apple', 'iPhone 13', 'Original', 'part', 15000.00, 22000.00, 3, 1),
+            ('PRD-003', 'BC-PRD-003', 'Samsung Generic Battery 4000mAh', 'Samsung', 'Generic', 'Compatible', 'part', 1200.00, 2000.00, 20, 5),
+            ('PRD-004', 'BC-PRD-004', 'iPhone 12 Battery Original', 'Apple', 'iPhone 12', 'Original', 'part', 2500.00, 4000.00, 10, 3),
+            ('PRD-005', 'BC-PRD-005', 'Universal USB-C Charging Port', 'Generic', NULL, 'Compatible', 'part', 500.00, 900.00, 15, 5),
+            ('PRD-006', 'BC-PRD-006', 'iPhone Lightning Port', 'Apple', NULL, 'OEM', 'part', 800.00, 1400.00, 10, 3),
+            ('PRD-007', 'BC-PRD-007', 'Silicone Phone Case - Universal', 'Generic', NULL, NULL, 'accessory', 150.00, 350.00, 50, 10),
+            ('PRD-008', 'BC-PRD-008', 'Tempered Glass Screen Protector', 'Generic', NULL, NULL, 'accessory', 80.00, 200.00, 100, 20),
+            ('PRD-009', 'BC-PRD-009', 'Type-C Fast Charger 20W', 'Generic', NULL, NULL, 'accessory', 600.00, 1200.00, 30, 8),
+            ('PRD-010', 'BC-PRD-010', 'iPhone Lightning Cable 1m', 'Apple', NULL, NULL, 'accessory', 300.00, 700.00, 40, 10),
+            ('PRD-011', 'BC-PRD-011', 'Wireless Earbuds TWS', 'Generic', NULL, NULL, 'accessory', 1500.00, 3000.00, 15, 5),
+            ('PRD-012', 'BC-PRD-012', '10000mAh Power Bank', 'Generic', NULL, NULL, 'accessory', 1800.00, 3500.00, 12, 4)");
 
         // App settings
         $conn->exec("INSERT INTO app_settings (setting_key, setting_value) VALUES

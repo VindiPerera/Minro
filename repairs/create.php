@@ -7,7 +7,6 @@ $db = getDB();
 
 $customers   = $db->query("SELECT id, name, phone FROM customers ORDER BY name")->fetchAll();
 $technicians = $db->query("SELECT id, name FROM users WHERE role='technician' AND status=1 ORDER BY name")->fetchAll();
-$services    = $db->query("SELECT * FROM repair_services WHERE status=1 ORDER BY name")->fetchAll();
 
 $errors = [];
 $data   = [];
@@ -33,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'assigned_to'         => !empty($_POST['assigned_to']) ? (int)$_POST['assigned_to'] : null,
         'estimated_delivery'  => $_POST['estimated_delivery'] ?? null,
         'internal_notes'      => trim($_POST['internal_notes'] ?? ''),
-        'services'            => $_POST['services'] ?? [],
+        'service_names'       => $_POST['service_names'] ?? [],
         'service_prices'      => $_POST['service_prices'] ?? [],
     ];
 
@@ -78,14 +77,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $jobId = (int)$db->lastInsertId();
 
         // Add services
-        foreach ($data['services'] as $idx => $serviceId) {
-            if (!$serviceId) continue;
+        foreach ($data['service_names'] as $idx => $svcName) {
+            $svcName = trim($svcName);
+            if (!$svcName) continue;
             $price = abs((float)($data['service_prices'][$idx] ?? 0));
-            $svc   = $db->prepare("SELECT name FROM repair_services WHERE id=?");
-            $svc->execute([$serviceId]);
-            $svcName = $svc->fetchColumn() ?: 'Service';
-            $db->prepare("INSERT INTO repair_job_services (job_id, service_id, service_name, price) VALUES (?,?,?,?)")
-               ->execute([$jobId, $serviceId, $svcName, $price]);
+            $db->prepare("INSERT INTO repair_job_services (job_id, service_id, service_name, price) VALUES (?,NULL,?,?)")
+               ->execute([$jobId, $svcName, $price]);
         }
 
         // If assigned, change status to in_progress
@@ -226,24 +223,19 @@ require_once __DIR__ . '/../includes/header.php';
     <!-- Services Section -->
     <div class="card mb-4">
       <div class="card-header d-flex justify-content-between align-items-center">
-        <span><i class="fas fa-wrench me-2 text-success"></i>Services Required</span>
+        <span><i class="fas fa-wrench me-2 text-success"></i>Services</span>
         <button type="button" class="btn btn-sm btn-outline-success" id="addServiceRow"><i class="fas fa-plus me-1"></i>Add Service</button>
       </div>
       <div class="card-body">
         <div id="servicesContainer">
           <div class="service-row row g-2 mb-2">
             <div class="col-md-8">
-              <select name="services[]" class="form-select">
-                <option value="">— Select Service —</option>
-                <?php foreach ($services as $svc): ?>
-                <option value="<?= $svc['id'] ?>" data-price="<?= $svc['base_price'] ?>"><?= e($svc['name']) ?> (Rs. <?= number_format($svc['base_price'],2) ?>)</option>
-                <?php endforeach; ?>
-              </select>
+              <input type="text" name="service_names[]" class="form-control" placeholder="Service description (e.g. Screen Replacement)">
             </div>
             <div class="col-md-3">
               <div class="input-group">
                 <span class="input-group-text">Rs.</span>
-                <input type="number" name="service_prices[]" class="form-control service-price" placeholder="Price" step="0.01" min="0">
+                <input type="number" name="service_prices[]" class="form-control service-price" placeholder="0.00" step="0.01" min="0">
               </div>
             </div>
             <div class="col-md-1">
@@ -251,7 +243,7 @@ require_once __DIR__ . '/../includes/header.php';
             </div>
           </div>
         </div>
-        <div class="mt-2 small text-muted"><i class="fas fa-info-circle me-1"></i>Service prices are auto-filled from defaults but can be customized.</div>
+        <div class="mt-2 small text-muted"><i class="fas fa-info-circle me-1"></i>Type the service name and enter the agreed price.</div>
       </div>
     </div>
 

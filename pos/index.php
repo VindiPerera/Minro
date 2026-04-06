@@ -5,11 +5,11 @@ requireAuth('admin', 'cashier');
 $pageTitle = 'Point of Sale';
 $db = getDB();
 
-// Load categories for filter
-$categories = $db->query("SELECT * FROM categories WHERE status=1 ORDER BY name")->fetchAll();
+// Load brands for filter pills
+$brands = $db->query("SELECT DISTINCT p.brand FROM products p WHERE p.status=1 AND p.brand IS NOT NULL ORDER BY p.brand")->fetchAll(PDO::FETCH_COLUMN);
 
 // Load all products
-$products = $db->query("SELECT p.*, c.name as category_name FROM products p LEFT JOIN categories c ON p.category_id=c.id WHERE p.status=1 AND p.type IN ('accessory','both') ORDER BY p.name")->fetchAll();
+$products = $db->query("SELECT p.* FROM products p WHERE p.status=1 ORDER BY p.name")->fetchAll();
 
 // Load customers for dropdown
 $customers = $db->query("SELECT id, name, phone FROM customers ORDER BY name")->fetchAll();
@@ -75,9 +75,11 @@ require_once __DIR__ . '/../includes/header.php';
         </button>
       </div>
       <div class="cat-pills">
-        <span class="cat-pill active" data-cat="all">All</span>
-        <?php foreach ($categories as $cat): ?>
-        <span class="cat-pill" data-cat="<?= $cat['id'] ?>"><?= e($cat['name']) ?></span>
+        <span class="cat-pill active" data-brand="all">All</span>
+        <span class="cat-pill" data-brand="__parts">Parts</span>
+        <span class="cat-pill" data-brand="__accessories">Accessories</span>
+        <?php foreach ($brands as $brand): ?>
+        <span class="cat-pill" data-brand="<?= e($brand) ?>"><?= e($brand) ?></span>
         <?php endforeach; ?>
       </div>
     </div>
@@ -98,7 +100,8 @@ require_once __DIR__ . '/../includes/header.php';
              data-code="<?= e($p['code']) ?>"
              data-price="<?= $p['selling_price'] ?>"
              data-stock="<?= $p['stock_quantity'] ?>"
-             data-cat="<?= $p['category_id'] ?>">
+             data-brand="<?= e($p['brand'] ?? '') ?>"
+             data-type="<?= e($p['type']) ?>">
           <div class="prod-icon"><i class="fas <?= $icon ?>"></i></div>
           <div class="prod-name"><?= e($p['name']) ?></div>
           <div class="prod-price"><?= money((float)$p['selling_price']) ?></div>
@@ -258,14 +261,20 @@ function fmt(n) {
 // ----------------------------------------------------------------
 function filterProducts() {
   const search = $("#productSearch").val().toLowerCase();
-  const catId  = $(".cat-pill.active").data("cat");
+  const brand  = $(".cat-pill.active").data("brand");
   $(".prod-card").each(function() {
-    const name  = $(this).data("name").toLowerCase();
-    const code  = $(this).data("code").toLowerCase();
-    const cat   = String($(this).data("cat"));
+    const name   = $(this).data("name").toLowerCase();
+    const code   = $(this).data("code").toLowerCase();
+    const pBrand = $(this).data("brand");
+    const pType  = $(this).data("type");
     const match = (name.includes(search) || code.includes(search));
-    const catOk = (catId === "all" || cat === String(catId));
-    $(this).toggle(match && catOk);
+    let brandOk = true;
+    if (brand && brand !== "all") {
+      if (brand === "__parts")       brandOk = pType === "part";
+      else if (brand === "__accessories") brandOk = pType === "accessory";
+      else                           brandOk = pBrand === brand;
+    }
+    $(this).toggle(match && brandOk);
   });
 }
 

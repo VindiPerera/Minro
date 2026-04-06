@@ -165,10 +165,5 @@ require_once __DIR__ . '/../includes/header.php';
 </div>
 
 <?php
-$extraScripts = "<script>
-$(document).ready(function() {
-  $('#jobsTable').DataTable({ pageLength: 20, order: [], searching: false, info: true });
-});
-</script>";
 require_once __DIR__ . '/../includes/footer.php';
 ?>

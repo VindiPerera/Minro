@@ -221,7 +221,7 @@ $isPrint = isset($_GET['print']);
     <!-- Barcode -->
     <div style="text-align:center;padding:10px;background:#f8f9fa;border-radius:8px;margin-bottom:20px">
       <svg id="invBarcode"></svg>
-      <div style="font-size:11px;color:#64748b"><?= e($job['job_number']) ?></div>
+      <div style="font-size:10px;color:#64748b;margin-top:2px">Job: <?= e($job['job_number']) ?> &nbsp;|&nbsp; <?= e($job['device_brand']) ?> <?= e($job['device_model']) ?></div>
     </div>
 
     <!-- Services -->
@@ -299,7 +299,7 @@ $isPrint = isset($_GET['print']);
 
 <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
 <script>
-JsBarcode('#invBarcode', '<?= e($job['job_number']) ?>', { format:'CODE128', width:1.8, height:45, displayValue:false, lineColor:'#334155', background:'#f8f9fa' });
+JsBarcode('#invBarcode', '<?= e($job['barcode'] ?: $job['job_number']) ?>', { format:'CODE128', width:1.8, height:45, displayValue:true, fontSize:11, lineColor:'#334155', background:'#f8f9fa' });
 
 // Form calculations
 const svc = <?= $serviceTotal ?>, parts = <?= $partsTotal ?>, adv = <?= (float)$job['advance_payment'] ?>;

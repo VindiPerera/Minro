@@ -69,7 +69,7 @@ if ($tab === 'stock') {
 $serviceRows = [];
 if ($tab === 'services') {
     $serviceRows = $db->prepare("
-        SELECT p.code, p.name, p.type,
+        SELECT p.code, p.name,
             SUM(CASE WHEN sm.reference_type='sale' THEN sm.quantity ELSE 0 END) as retail_qty,
             SUM(CASE WHEN sm.reference_type='repair_parts' THEN sm.quantity ELSE 0 END) as repair_qty,
             SUM(sm.quantity) as total_qty
@@ -294,7 +294,7 @@ $statusCounts  = array_count_values(array_column($repairRows,'status'));
       <div class="card-header fw-semibold">Parts Usage (Retail vs Repair)</div>
       <div class="card-body p-0">
         <table class="table table-sm table-hover mb-0 datatable">
-          <thead><tr><th>Product</th><th>Type</th><th>Retail</th><th>Repair</th><th>Total</th></tr></thead>
+          <thead><tr><th>Product</th><th>Retail</th><th>Repair</th><th>Total</th></tr></thead>
           <tbody>
             <?php foreach ($serviceRows as $s): ?>
             <tr>
@@ -302,13 +302,12 @@ $statusCounts  = array_count_values(array_column($repairRows,'status'));
                 <div class="small fw-semibold"><?= e($s['name']) ?></div>
                 <small class="text-muted"><?= e($s['code']) ?></small>
               </td>
-              <td><span class="badge bg-secondary-subtle text-secondary small"><?= e($s['type']) ?></span></td>
               <td><?= $s['retail_qty'] ?: '—' ?></td>
               <td><?= $s['repair_qty'] ?: '—' ?></td>
               <td class="fw-semibold"><?= $s['total_qty'] ?></td>
             </tr>
             <?php endforeach; ?>
-            <?php if (empty($serviceRows)): ?><tr><td colspan="5" class="text-center text-muted py-4">No data.</td></tr><?php endif; ?>
+            <?php if (empty($serviceRows)): ?><tr><td colspan="4" class="text-center text-muted py-4">No data.</td></tr><?php endif; ?>
           </tbody>
         </table>
       </div>
