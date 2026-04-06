@@ -95,16 +95,17 @@ $isPrint     = isset($_GET['print']);
   .barcode-label svg { max-width: 100%; }
 
   @media print {
-    @page { size: 50mm 25mm; margin: 0; }
+    @page { size: 50mm 28mm; margin: 0; }
     body { background: white; }
     .no-print-bar { display: none; }
-    .label-grid { padding: 0; gap: 0; }
+    .label-grid { padding: 0; gap: 0; flex-direction: column; align-items: flex-start; }
     .barcode-label {
       box-shadow: none;
       border: none;
       width: 50mm !important;
       height: 25mm !important;
       padding: 1mm 2mm !important;
+      margin-bottom: 3mm !important;
       page-break-after: always;
       overflow: hidden;
     }

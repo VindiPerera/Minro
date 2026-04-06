@@ -39,7 +39,7 @@ $serviceTotal = array_sum(array_column($services, 'price'));
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
 <style>
 <?php if ($sticker): ?>
-@page { size: 50mm 25mm; margin: 0; }
+@page { size: 50mm 28mm; margin: 0; }
 <?php else: ?>
 @page { size: 80mm auto; margin: 3mm 4mm; }
 <?php endif; ?>
@@ -85,7 +85,7 @@ body { background: #f8fafc; font-family: Arial, sans-serif; color: #000; }
   body { background: white; }
   .no-print { display: none; }
   <?php if ($sticker): ?>
-  .sticker { border: none; width: 50mm; height: 25mm; padding: 1mm 2mm; }
+  .sticker { border: none; width: 50mm; height: 25mm; padding: 1mm 2mm; margin-bottom: 3mm; }
   .sticker-wrap { padding: 0; }
   <?php else: ?>
   .ticket { width: 100%; margin: 0; padding: 0; }
