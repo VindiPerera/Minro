@@ -124,10 +124,15 @@ $isPrint     = isset($_GET['print']);
       page-break-after: always;
       break-after: page;
     }
-    .barcode-label .label-name  { font-size: 7.5pt !important; font-weight: 700 !important; line-height: 1 !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .barcode-label .label-meta  { font-size: 6pt !important;   color: #444 !important;  line-height: 1 !important; }
-    .barcode-label .label-price { font-size: 8.5pt !important; font-weight: 800 !important; line-height: 1 !important; }
-    .barcode-label svg { max-width: 100% !important; display: block !important; }
+    .barcode-label .label-name  { font-size: 7pt !important;  font-weight: 700 !important; line-height: 1 !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .barcode-label .label-meta  { display: none !important; }
+    .barcode-label .label-price { font-size: 8pt !important;  font-weight: 800 !important; line-height: 1 !important; }
+    .barcode-label svg {
+      display: block !important;
+      width: 47mm !important;
+      height: 14mm !important;
+      overflow: hidden !important;
+    }
   }
 </style>
 </head>
@@ -178,14 +183,12 @@ const total = <?= $qty ?>;
 for (let i = 0; i < total; i++) {
   JsBarcode('.barcode-svg-' + i, barcodeValue, {
     format: 'CODE128',
-    width: 1.3,
-    height: 22,
-    displayValue: true,
-    fontSize: 7,
+    width: 2,
+    height: 40,
+    displayValue: false,
     lineColor: '#000',
     background: '#ffffff',
-    margin: 0,
-    textMargin: 1
+    margin: 0
   });
 }
 <?php if ($isPrint): ?>

@@ -57,6 +57,9 @@ $isPrint  = isset($_GET['print']);
 
 <div class="receipt-wrap" id="receiptPrint">
   <div class="receipt-header">
+    <div style="margin-bottom:8px">
+      <img src="<?= BASE_URL ?>/assets/logo.png" alt="logo" style="max-height:48px;max-width:160px;object-fit:contain;filter:brightness(0) invert(1)">
+    </div>
     <div style="font-size:22px;font-weight:800;letter-spacing:2px"><?= e($company) ?></div>
     <?php if ($addr): ?><div style="font-size:11px;opacity:.8"><?= e($addr) ?></div><?php endif; ?>
     <?php if ($phone): ?><div style="font-size:11px;opacity:.8"><?= e($phone) ?></div><?php endif; ?>

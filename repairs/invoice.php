@@ -234,6 +234,9 @@ $isPrint = isset($_GET['print']);
 <div class="invoice-wrap" id="invoicePrint">
   <div class="inv-header">
     <div>
+      <div style="margin-bottom:6px">
+        <img src="<?= BASE_URL ?>/assets/logo.png" alt="logo" style="max-height:44px;max-width:140px;object-fit:contain;filter:brightness(0) invert(1)">
+      </div>
       <div style="font-size:24px;font-weight:800;letter-spacing:2px"><?= e($companyName) ?></div>
       <?php if ($companyAddr): ?><div style="font-size:11px;opacity:.7"><?= e($companyAddr) ?></div><?php endif; ?>
       <?php if ($companyPhone): ?><div style="font-size:11px;opacity:.7"><?= e($companyPhone) ?></div><?php endif; ?>

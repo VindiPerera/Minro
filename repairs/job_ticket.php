@@ -61,6 +61,7 @@ body { background: #f8fafc; font-family: Arial, sans-serif; color: #000; }
 
 /* ── TICKET (80mm direct thermal) ─────────────────────── */
 .ticket { width: 72mm; margin: 20px auto; background: #fff; padding: 2mm; font-size: 8.5pt; line-height: 1.4; }
+.ticket-co-logo  { text-align: center; margin-bottom: 1mm; }
 .ticket-co-name  { font-size: 13pt; font-weight: 900; text-align: center; letter-spacing: 1px; }
 .ticket-co-sub   { font-size: 7.5pt; text-align: center; margin-bottom: 0.5mm; }
 .t-divider       { border: none; border-top: 1px dashed #555; margin: 2mm 0; }
@@ -88,6 +89,7 @@ body { background: #f8fafc; font-family: Arial, sans-serif; color: #000; }
   <?php if ($sticker): ?>
   .no-print { display: none !important; }
   .sticker-wrap { padding: 0; display: block; }
+  .ticket-co-logo { display: none !important; }
   .sticker {
     border: none;
     width: 50mm;
@@ -142,6 +144,7 @@ body { background: #f8fafc; font-family: Arial, sans-serif; color: #000; }
 ============================================================ -->
 <div class="ticket" id="ticketPrint">
 
+  <div class="ticket-co-logo"><img src="<?= BASE_URL ?>/assets/logo.png" alt="logo" style="max-height:36px;max-width:120px;object-fit:contain"></div>
   <div class="ticket-co-name"><?= e($companyName) ?></div>
   <?php if ($companyAddr): ?><div class="ticket-co-sub"><?= e($companyAddr) ?></div><?php endif; ?>
   <?php if ($companyPhone): ?><div class="ticket-co-sub"><?= e($companyPhone) ?></div><?php endif; ?>
