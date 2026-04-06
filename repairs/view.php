@@ -105,6 +105,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 setFlash('success', 'Part removed and stock returned.');
             }
             break;
+
+        case 'record_payment':
+            requireAuth('admin', 'cashier');
+            $inv = $db->prepare("SELECT * FROM repair_invoices WHERE job_id=? LIMIT 1");
+            $inv->execute([$id]);
+            $inv = $inv->fetch();
+            if ($inv) {
+                $newAmt    = abs((float)($_POST['new_payment'] ?? 0));
+                $payMethod = $_POST['payment_method'] ?? 'cash';
+                if ($newAmt > 0) {
+                    $totalPaid   = (float)$inv['paid_amount'] + (float)$inv['advance_payment'] + $newAmt;
+                    $newPaidAmt  = (float)$inv['paid_amount'] + $newAmt;
+                    $newBalance  = max(0, (float)$inv['total'] - (float)$inv['advance_payment'] - $newPaidAmt);
+                    $payStatus   = $totalPaid >= (float)$inv['total'] ? 'paid' : 'partial';
+                    $db->prepare("UPDATE repair_invoices SET paid_amount=?, balance_due=?, payment_status=?, payment_method=? WHERE id=?")
+                       ->execute([$newPaidAmt, $newBalance, $payStatus, $payMethod, $inv['id']]);
+                    setFlash('success', 'Payment of ' . money($newAmt) . ' recorded. Status: ' . ucfirst($payStatus) . '.');
+                } else {
+                    setFlash('error', 'Enter a valid payment amount.');
+                }
+            } else {
+                setFlash('error', 'No invoice found for this job.');
+            }
+            break;
     }
 
     header('Location: ' . BASE_URL . '/repairs/view.php?id=' . $id);
@@ -314,6 +338,72 @@ $showTicket = isset($_GET['print_ticket']);
         </table>
       </div>
     </div>
+
+    <?php if ($invoice): ?>
+    <!-- Payment Collection -->
+    <?php
+      $invBalance  = (float)$invoice['balance_due'];
+      $invTotal    = (float)$invoice['total'];
+      $invAdvance  = (float)$invoice['advance_payment'];
+      $invPaid     = (float)$invoice['paid_amount'];
+      $invStatus   = $invoice['payment_status'];
+      $statusColor = $invStatus === 'paid' ? '#86efac' : ($invStatus === 'partial' ? '#fbbf24' : '#f87171');
+      $statusLabel = $invStatus === 'paid' ? '✓ Paid' : ($invStatus === 'partial' ? '◑ Partial' : '✗ Pending');
+    ?>
+    <div class="card mb-4" style="border-color:<?= $invBalance > 0 ? '#f59e0b' : '#22c55e' ?>">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="fas fa-money-bill-wave me-2 text-warning"></i>Payment</span>
+        <span style="color:<?= $statusColor ?>;font-size:12px;font-weight:700"><?= $statusLabel ?></span>
+      </div>
+      <div class="card-body">
+        <table class="w-100 mb-3" style="font-size:12px">
+          <tr><td class="text-muted py-1">Invoice</td><td class="text-end fw-semibold"><?= e($invoice['invoice_number']) ?></td></tr>
+          <tr><td class="text-muted py-1">Total</td><td class="text-end fw-semibold"><?= money($invTotal) ?></td></tr>
+          <tr><td class="text-muted py-1">Advance</td><td class="text-end" style="color:#86efac">− <?= money($invAdvance) ?></td></tr>
+          <?php if ($invPaid > 0): ?>
+          <tr><td class="text-muted py-1">Collected</td><td class="text-end" style="color:#86efac">− <?= money($invPaid) ?></td></tr>
+          <?php endif; ?>
+          <tr style="border-top:1px solid #334155">
+            <td class="py-2 fw-bold">Balance Due</td>
+            <td class="text-end fw-bold" style="color:<?= $invBalance > 0 ? '#fbbf24' : '#86efac' ?>;font-size:15px"><?= money($invBalance) ?></td>
+          </tr>
+        </table>
+
+        <?php if ($invBalance > 0): ?>
+        <form method="POST">
+          <input type="hidden" name="action" value="record_payment">
+          <div class="mb-2">
+            <label class="form-label small text-muted">Collect Amount</label>
+            <div class="input-group input-group-sm">
+              <span class="input-group-text">Rs.</span>
+              <input type="number" name="new_payment" class="form-control" placeholder="<?= number_format($invBalance, 2) ?>" step="0.01" min="0.01" max="<?= $invBalance ?>" required>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small text-muted">Method</label>
+            <select name="payment_method" class="form-select form-select-sm">
+              <option value="cash" <?= $invoice['payment_method']==='cash'?'selected':'' ?>>Cash</option>
+              <option value="card" <?= $invoice['payment_method']==='card'?'selected':'' ?>>Card</option>
+              <option value="transfer" <?= $invoice['payment_method']==='transfer'?'selected':'' ?>>Bank Transfer</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-warning w-100 btn-sm fw-bold">
+            <i class="fas fa-check-circle me-2"></i>Record Payment
+          </button>
+        </form>
+        <?php else: ?>
+        <div class="text-center py-2" style="color:#86efac">
+          <i class="fas fa-check-circle fa-2x mb-2 d-block"></i>
+          <strong>Fully Paid</strong>
+        </div>
+        <?php endif; ?>
+
+        <a href="<?= BASE_URL ?>/repairs/invoice.php?id=<?= $id ?>" class="btn btn-outline-secondary w-100 btn-sm mt-2">
+          <i class="fas fa-file-invoice me-1"></i>View / Print Invoice
+        </a>
+      </div>
+    </div>
+    <?php endif; ?>
 
     <!-- Job Barcode Card -->
     <div class="card">

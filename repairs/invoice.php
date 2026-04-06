@@ -107,9 +107,69 @@ $isPrint = isset($_GET['print']);
   .payment-form-wrap { max-width: 700px; margin: 20px auto; padding: 24px; background: #1e293b; border-radius: 12px; border: 1px solid #334155; }
 
   @media print {
-    body { background: white; }
-    .no-print, .payment-form-wrap { display: none; }
-    .invoice-wrap { margin: 0; border-radius: 0; box-shadow: none; }
+    @page { size: 80mm auto; margin: 0mm; }
+
+    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+    body { background: white !important; color: #000 !important; font-family: 'Courier New', monospace !important; font-size: 11px !important; }
+
+    .no-print, .payment-form-wrap { display: none !important; }
+
+    .invoice-wrap {
+      max-width: 80mm !important;
+      width: 80mm !important;
+      margin: 0 !important;
+      border-radius: 0 !important;
+      box-shadow: none !important;
+      overflow: visible !important;
+    }
+
+    /* Header: stack vertically instead of side-by-side */
+    .inv-header {
+      display: block !important;
+      text-align: center !important;
+      padding: 8px !important;
+      background: #000 !important;
+      color: #fff !important;
+    }
+    .inv-header > div { text-align: center !important; }
+    .inv-header [style*="font-size:24px"] { font-size: 15px !important; letter-spacing: 1px !important; }
+    .inv-header [style*="font-size:22px"] { font-size: 13px !important; }
+    .inv-header [style*="font-size:11px"] { font-size: 9px !important; }
+    .inv-header [style*="font-size:18px"] { font-size: 11px !important; }
+
+    .inv-body { padding: 6px 8px !important; }
+    .inv-footer { padding: 6px 8px !important; font-size: 9px !important; }
+
+    /* Meta grid: stack to single column */
+    .inv-body > div[style*="grid"] {
+      display: block !important;
+      margin-bottom: 8px !important;
+    }
+    .inv-body > div[style*="grid"] > div {
+      text-align: left !important;
+      margin-bottom: 4px !important;
+    }
+    .inv-label { font-size: 8px !important; letter-spacing: 0 !important; }
+    .inv-value { font-size: 11px !important; }
+
+    /* Barcode */
+    #invBarcode { max-width: 68mm !important; height: 30px !important; }
+
+    /* Tables: compact */
+    table.inv-table th, table.inv-table td { padding: 3px 2px !important; font-size: 10px !important; }
+    table.inv-table th { background: #eee !important; }
+
+    /* Totals */
+    .inv-totals { width: 100% !important; margin: 0 !important; }
+    .inv-totals td { font-size: 11px !important; padding: 2px 0 !important; }
+    .inv-totals .grand-total td { font-size: 13px !important; }
+
+    /* Badges */
+    .badge-paid, .badge-partial, .badge-pending { font-size: 10px !important; padding: 2px 6px !important; border-radius: 3px !important; }
+
+    /* Dashed separator */
+    hr { border-top: 1px dashed #000 !important; }
   }
 </style>
 </head>
@@ -224,6 +284,8 @@ $isPrint = isset($_GET['print']);
       <div style="font-size:10px;color:#64748b;margin-top:2px">Job: <?= e($job['job_number']) ?> &nbsp;|&nbsp; <?= e($job['device_brand']) ?> <?= e($job['device_model']) ?></div>
     </div>
 
+    <hr style="border:none;border-top:1px dashed #ccc;margin:10px 0">
+
     <!-- Services -->
     <?php if (!empty($services)): ?>
     <div style="margin-bottom:20px">
@@ -241,6 +303,7 @@ $isPrint = isset($_GET['print']);
 
     <!-- Parts -->
     <?php if (!empty($parts)): ?>
+    <hr style="border:none;border-top:1px dashed #ccc;margin:10px 0">
     <div style="margin-bottom:20px">
       <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#94a3b8;margin-bottom:8px">Replacement Parts</div>
       <table class="inv-table">
@@ -258,6 +321,8 @@ $isPrint = isset($_GET['print']);
       </table>
     </div>
     <?php endif; ?>
+
+    <hr style="border:none;border-top:1px dashed #ccc;margin:10px 0">
 
     <!-- Totals -->
     <?php
@@ -299,7 +364,7 @@ $isPrint = isset($_GET['print']);
 
 <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
 <script>
-JsBarcode('#invBarcode', '<?= e($job['barcode'] ?: $job['job_number']) ?>', { format:'CODE128', width:1.8, height:45, displayValue:true, fontSize:11, lineColor:'#334155', background:'#f8f9fa' });
+JsBarcode('#invBarcode', '<?= e($job['barcode'] ?: $job['job_number']) ?>', { format:'CODE128', width:1.4, height:40, displayValue:true, fontSize:10, lineColor:'#334155', background:'#f8f9fa' });
 
 // Form calculations
 const svc = <?= $serviceTotal ?>, parts = <?= $partsTotal ?>, adv = <?= (float)$job['advance_payment'] ?>;

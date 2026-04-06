@@ -446,15 +446,18 @@ $("#btnProcessSale").on("click", function() {
           try { JsBarcode(this, $(this).data("barcode"), { format:"CODE128", width:1.5, height:40, displayValue:true, fontSize:10, margin:3, lineColor:"#000", background:"#fff" }); } catch(e) {}
         });
       }
-      new bootstrap.Modal(document.getElementById("receiptModal")).show();
+      const receiptModal = new bootstrap.Modal(document.getElementById("receiptModal"));
+      receiptModal.show();
       // Reset cart
       cart = [];
       $("#discountValue").val("0");
       $("#paidAmount").val("");
       $("#customerSelect").val("").trigger("change");
       renderCart();
-      // Refresh products (stock update)
-      setTimeout(() => location.reload(), 100);
+      // Reload page only after modal is closed (to update stock)
+      document.getElementById("receiptModal").addEventListener("hidden.bs.modal", function() {
+        location.reload();
+      }, { once: true });
     } else {
       toast(res.message || "Sale failed!", "error");
     }
