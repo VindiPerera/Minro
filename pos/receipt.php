@@ -34,7 +34,7 @@ $isPrint  = isset($_GET['print']);
 <style>
   body { background: #0f172a; color: #e2e8f0; font-family: 'Segoe UI', sans-serif; }
   .receipt-wrap { max-width: 380px; margin: 40px auto; background: white; color: #111; border-radius: 12px; overflow: hidden; font-family: 'Courier New', monospace; font-size: 13px; }
-  .receipt-header { background: #1e293b; color: white; padding: 20px; text-align: center; }
+  .receipt-header { background: #1e293b; color: white; padding: 20px; text-align: center; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
   .receipt-body { padding: 20px; }
   .receipt-footer { background: #f8f9fa; padding: 14px 20px; text-align: center; font-size: 11px; color: #666; }
   .dashed { border-top: 1.5px dashed #ccc; margin: 12px 0; }

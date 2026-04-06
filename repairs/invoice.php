@@ -86,7 +86,7 @@ $isPrint = isset($_GET['print']);
   .no-print { padding: 16px 20px; background: #1e293b; border-bottom: 1px solid #334155; display: flex; gap: 10px; align-items: center; }
 
   .invoice-wrap { max-width: 700px; margin: 30px auto; background: white; color: #111; border-radius: 12px; overflow: hidden; }
-  .inv-header { background: #1e293b; color: white; padding: 24px 32px; display: flex; justify-content: space-between; align-items: flex-start; }
+  .inv-header { background: #1e293b; color: white; padding: 24px 32px; display: flex; justify-content: space-between; align-items: flex-start; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
   .inv-body   { padding: 24px 32px; }
   .inv-footer { background: #f8f9fa; padding: 16px 32px; font-size: 12px; color: #666; text-align: center; }
 
