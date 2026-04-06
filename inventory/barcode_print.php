@@ -45,10 +45,10 @@ $isPrint     = isset($_GET['print']);
 
   .label-grid {
     display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
     padding: 30px;
-    justify-content: flex-start;
   }
 
   /* Screen preview — proportional 2:1 */
@@ -91,29 +91,43 @@ $isPrint     = isset($_GET['print']);
   }
 
   @media print {
-    @page { size: 50mm 25mm; margin: 0; }
-    * { line-height: 1 !important; }
-    body { background: white; }
-    .no-print-bar { display: none; }
-    .label-grid { padding: 0; gap: 0; flex-direction: column; align-items: flex-start; }
+    /* XP-237B single-column 50x25mm label */
+    @page {
+      size: 50mm 25mm;
+      margin: 0mm;
+    }
+    html, body {
+      width: 50mm;
+      margin: 0;
+      padding: 0;
+      background: white;
+    }
+    .no-print-bar { display: none !important; }
+    .label-grid {
+      display: block;
+      padding: 0;
+      margin: 0;
+      width: 50mm;
+    }
     .barcode-label {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
       box-shadow: none;
       border: none;
       border-radius: 0;
       width: 50mm !important;
       height: 25mm !important;
-      padding: 1mm 1.5mm !important;
+      padding: 1.2mm 1.5mm !important;
       margin: 0 !important;
+      overflow: hidden;
       page-break-after: always;
       break-after: page;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
     }
-    .barcode-label .label-name  { font-size: 7.5pt !important; font-weight: 700 !important; }
-    .barcode-label .label-meta  { font-size: 6pt   !important; color: #555 !important; }
-    .barcode-label .label-price { font-size: 8.5pt  !important; font-weight: 800 !important; }
+    .barcode-label .label-name  { font-size: 7.5pt !important; font-weight: 700 !important; line-height: 1 !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .barcode-label .label-meta  { font-size: 6pt !important;   color: #444 !important;  line-height: 1 !important; }
+    .barcode-label .label-price { font-size: 8.5pt !important; font-weight: 800 !important; line-height: 1 !important; }
+    .barcode-label svg { max-width: 100% !important; display: block !important; }
   }
 </style>
 </head>
