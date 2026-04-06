@@ -154,7 +154,7 @@ $isPrint = isset($_GET['print']);
     .inv-value { font-size: 11px !important; }
 
     /* Barcode */
-    #invBarcode { max-width: 68mm !important; height: 30px !important; }
+    #invBarcode { width: 50mm !important; height: 25mm !important; display: block !important; }
 
     /* Tables: compact */
     table.inv-table th, table.inv-table td { padding: 3px 2px !important; font-size: 10px !important; }
@@ -283,7 +283,7 @@ $isPrint = isset($_GET['print']);
 
     <!-- Barcode -->
     <div style="text-align:center;padding:10px;background:#f8f9fa;border-radius:8px;margin-bottom:20px">
-      <svg id="invBarcode"></svg>
+      <svg id="invBarcode" style="display:block;margin:0 auto;width:50mm;height:25mm;"></svg>
       <div style="font-size:10px;color:#64748b;margin-top:2px">Job: <?= e($job['job_number']) ?> &nbsp;|&nbsp; <?= e($job['device_brand']) ?> <?= e($job['device_model']) ?></div>
     </div>
 
@@ -367,7 +367,7 @@ $isPrint = isset($_GET['print']);
 
 <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
 <script>
-JsBarcode('#invBarcode', '<?= e($job['barcode'] ?: $job['job_number']) ?>', { format:'CODE128', width:1.4, height:40, displayValue:true, fontSize:10, lineColor:'#334155', background:'#f8f9fa' });
+JsBarcode('#invBarcode', '<?= e($job['barcode'] ?: $job['job_number']) ?>', { format:'CODE128', width:2, height:50, displayValue:true, fontSize:11, lineColor:'#334155', background:'#f8f9fa' });
 
 // Form calculations
 const svc = <?= $serviceTotal ?>, parts = <?= $partsTotal ?>, adv = <?= (float)$job['advance_payment'] ?>;

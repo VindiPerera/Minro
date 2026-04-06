@@ -67,7 +67,7 @@ $isPrint  = isset($_GET['print']);
 
   <div class="receipt-body">
     <div style="text-align:center;margin-bottom:12px">
-      <svg data-barcode="<?= e($sale['invoice_number']) ?>"></svg>
+      <svg data-barcode="<?= e($sale['invoice_number']) ?>" style="display:block;margin:0 auto;width:50mm;height:25mm;"></svg>
     </div>
 
     <table>
@@ -123,7 +123,7 @@ $isPrint  = isset($_GET['print']);
 
 <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
 <script>
-  JsBarcode("[data-barcode]", "<?= e($sale['invoice_number']) ?>", { format:'CODE128', width:1.5, height:40, displayValue:true, fontSize:10, lineColor:'#000', background:'#fff' });
+  JsBarcode("[data-barcode]", "<?= e($sale['invoice_number']) ?>", { format:'CODE128', width:2, height:50, displayValue:true, fontSize:11, lineColor:'#000', background:'#fff' });
   <?php if ($isPrint): ?>window.onload = function() { window.print(); };<?php endif; ?>
 </script>
 </body>

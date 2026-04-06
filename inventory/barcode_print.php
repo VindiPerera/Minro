@@ -118,20 +118,22 @@ $isPrint     = isset($_GET['print']);
       border-radius: 0;
       width: 50mm !important;
       height: 25mm !important;
-      padding: 1.2mm 1.5mm !important;
+      padding: 1mm 1.5mm !important;
       margin: 0 !important;
       overflow: hidden;
+      box-sizing: border-box;
       page-break-after: always;
       break-after: page;
     }
-    .barcode-label .label-name  { font-size: 7pt !important;  font-weight: 700 !important; line-height: 1 !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .barcode-label .label-name  { font-size: 6pt !important;  font-weight: 700 !important; line-height: 1 !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-shrink: 0; }
     .barcode-label .label-meta  { display: none !important; }
-    .barcode-label .label-price { font-size: 8pt !important;  font-weight: 800 !important; line-height: 1 !important; }
+    .barcode-label .label-price { font-size: 7pt !important;  font-weight: 800 !important; line-height: 1 !important; flex-shrink: 0; }
     .barcode-label svg {
       display: block !important;
       width: 47mm !important;
-      height: 14mm !important;
-      overflow: hidden !important;
+      height: 13mm !important;
+      flex-shrink: 0;
+      overflow: visible !important;
     }
   }
 </style>
@@ -190,6 +192,18 @@ for (let i = 0; i < total; i++) {
     background: '#ffffff',
     margin: 0
   });
+  // Make SVG scale to CSS dimensions by replacing px attrs with a viewBox
+  const svg = document.querySelector('.barcode-svg-' + i);
+  if (svg) {
+    const w = svg.getAttribute('width');
+    const h = svg.getAttribute('height');
+    if (w && h) {
+      svg.setAttribute('viewBox', '0 0 ' + w + ' ' + h);
+      svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+      svg.removeAttribute('width');
+      svg.removeAttribute('height');
+    }
+  }
 }
 <?php if ($isPrint): ?>
 window.onload = function() { setTimeout(() => window.print(), 400); };
