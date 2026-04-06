@@ -38,42 +38,59 @@ $serviceTotal = array_sum(array_column($services, 'price'));
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
 <style>
-  body { background: #f1f5f9; font-family: Arial, sans-serif; }
-  .no-print { background: #1e293b; padding: 12px 20px; display: flex; gap: 10px; align-items: center; }
+<?php if ($sticker): ?>
+@page { size: 57mm 40mm; margin: 0; }
+<?php else: ?>
+@page { size: 80mm auto; margin: 3mm 4mm; }
+<?php endif; ?>
 
-  /* ---- JOB TICKET ---- */
-  .ticket { width: 200mm; margin: 20px auto; background: white; border: 1px solid #e2e8f0; }
-  .ticket-header { background: #1e293b; color: white; padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; }
-  .ticket-body { padding: 20px 24px; }
-  .ticket-section { margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px dashed #e2e8f0; }
-  .ticket-section:last-child { border-bottom: none; margin-bottom: 0; }
-  .section-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #94a3b8; margin-bottom: 8px; }
-  .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-  .info-item label { font-size: 10px; color: #94a3b8; display: block; }
-  .info-item span  { font-size: 13px; font-weight: 600; color: #1e293b; }
-  .ticket-footer { background: #f8f9fa; padding: 14px 24px; text-align: center; font-size: 11px; color: #666; border-top: 1px dashed #e2e8f0; }
-  .priority-urgent  { background: #fef3c7; color: #92400e; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
-  .priority-express { background: #fee2e2; color: #991b1b; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
-  .priority-normal  { background: #f1f5f9; color: #64748b; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
-  .barcode-box { text-align: center; padding: 12px; background: white; }
-  .services-list { font-size: 12px; }
-  .services-list tr td { padding: 3px 0; }
+* { box-sizing: border-box; }
+body { background: #f8fafc; font-family: Arial, sans-serif; color: #000; }
+.no-print { background: #1e293b; padding: 12px 20px; display: flex; gap: 10px; align-items: center; }
 
-  /* ---- STICKER ---- */
-  .sticker-page { display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
-  .sticker { width: 70mm; border: 2px dashed #334155; padding: 8px 12px; text-align: center; background: white; margin: 8px; display: inline-block; vertical-align: top; }
-  .sticker-company { font-size: 11px; font-weight: 700; letter-spacing: 1px; color: #475569; text-transform: uppercase; margin-bottom: 4px; }
-  .sticker-job   { font-size: 15px; font-weight: 800; color: #2563eb; margin: 3px 0; }
-  .sticker-device{ font-size: 12px; font-weight: 600; color: #1e293b; margin-bottom: 3px; }
-  .sticker-meta  { font-size: 9px; color: #94a3b8; }
-  .stickers-wrap { display: flex; flex-wrap: wrap; justify-content: center; padding: 20px; }
+/* ── STICKER (direct thermal label) ───────────────────── */
+.sticker-wrap { display: flex; justify-content: center; padding: 30px; }
+.sticker { width: 57mm; border: 1px dashed #888; padding: 2mm 3mm; background: #fff; text-align: center; }
+.sticker-company { font-size: 8pt; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; border-bottom: 1px solid #000; padding-bottom: 1mm; margin-bottom: 1mm; }
+.sticker-job     { font-size: 13pt; font-weight: 900; letter-spacing: 1px; margin: 1mm 0; }
+.sticker-device  { font-size: 9.5pt; font-weight: 700; margin-bottom: 0.5mm; }
+.sticker-cust    { font-size: 8.5pt; margin-bottom: 0.5mm; }
+.sticker-meta    { font-size: 7.5pt; }
+.sticker svg     { max-width: 100%; }
 
-  @media print {
-    body { background: white; }
-    .no-print { display: none; }
-    .ticket { width: 100%; margin: 0; border: none; box-shadow: none; }
-    .sticker-page { min-height: auto; padding: 0; }
-  }
+/* ── TICKET (80mm direct thermal) ─────────────────────── */
+.ticket { width: 72mm; margin: 20px auto; background: #fff; padding: 2mm; font-size: 8.5pt; line-height: 1.4; }
+.ticket-co-name  { font-size: 13pt; font-weight: 900; text-align: center; letter-spacing: 1px; }
+.ticket-co-sub   { font-size: 7.5pt; text-align: center; margin-bottom: 0.5mm; }
+.t-divider       { border: none; border-top: 1px dashed #555; margin: 2mm 0; }
+.t-title         { font-size: 9.5pt; font-weight: 700; text-align: center; letter-spacing: 2px; margin: 1.5mm 0; }
+.t-job-no        { font-size: 16pt; font-weight: 900; text-align: center; margin: 1mm 0; }
+.t-priority      { font-size: 8pt; font-weight: 700; text-align: center; margin-bottom: 1.5mm; }
+.t-section-hd    { font-size: 7.5pt; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #000; padding-bottom: 0.5mm; margin: 2mm 0 1mm; }
+.t-row           { display: flex; justify-content: space-between; font-size: 8.5pt; margin: 0.8mm 0; }
+.t-row .lbl      { color: #444; flex-shrink: 0; margin-right: 3mm; }
+.t-row .val      { font-weight: 600; text-align: right; }
+.t-svc-table     { width: 100%; border-collapse: collapse; font-size: 8.5pt; }
+.t-svc-table td  { padding: 0.8mm 0; }
+.t-svc-table .r  { text-align: right; }
+.t-total td      { border-top: 1px solid #000; font-weight: 700; padding-top: 1.5mm; }
+.t-barcode-box   { text-align: center; margin: 2mm 0; }
+.t-sig           { display: flex; justify-content: space-between; margin: 5mm 0 2mm; }
+.t-sig-item      { flex: 1; text-align: center; }
+.t-sig-line      { border-top: 1px solid #000; margin: 0 4mm 1.5mm; }
+.t-sig-lbl       { font-size: 7pt; }
+.t-footer        { text-align: center; font-size: 7.5pt; border-top: 1px dashed #555; padding-top: 2mm; margin-top: 2mm; line-height: 1.5; }
+
+@media print {
+  body { background: white; }
+  .no-print { display: none; }
+  <?php if ($sticker): ?>
+  .sticker { border: none; width: 100%; padding: 1mm 2mm; }
+  .sticker-wrap { padding: 0; }
+  <?php else: ?>
+  .ticket { width: 100%; margin: 0; padding: 0; }
+  <?php endif; ?>
+}
 </style>
 </head>
 <body>
@@ -90,128 +107,90 @@ $serviceTotal = array_sum(array_column($services, 'price'));
 
 <?php if ($sticker): ?>
 <!-- ============================================================
-     DEVICE BARCODE STICKER (small label to attach to device)
+     DEVICE BARCODE STICKER (direct thermal label)
 ============================================================ -->
-<div class="stickers-wrap">
-  <?php for ($i = 0; $i < 4; $i++): ?>
+<div class="sticker-wrap">
   <div class="sticker">
     <div class="sticker-company"><?= e($companyName) ?></div>
     <svg class="stickerBarcode" data-value="<?= e($job['barcode'] ?: $job['job_number']) ?>"></svg>
     <div class="sticker-job"><?= e($job['job_number']) ?></div>
     <div class="sticker-device"><?= e($job['device_brand']) ?> <?= e($job['device_model']) ?></div>
+    <div class="sticker-cust"><?= e($job['cname']) ?></div>
     <div class="sticker-meta"><?= date('d/m/Y', strtotime($job['created_at'])) ?></div>
     <?php if ($job['device_imei']): ?>
     <div class="sticker-meta">IMEI: <?= e($job['device_imei']) ?></div>
     <?php endif; ?>
   </div>
-  <?php endfor; ?>
 </div>
 
 <?php else: ?>
 <!-- ============================================================
-     FULL JOB TICKET (A5/A4 for customer)
+     FULL JOB TICKET (80mm direct thermal)
 ============================================================ -->
 <div class="ticket" id="ticketPrint">
-  <div class="ticket-header">
-    <div>
-      <div style="font-size:22px;font-weight:800;letter-spacing:2px"><?= e($companyName) ?></div>
-      <?php if ($companyAddr): ?><div style="font-size:11px;opacity:.7"><?= e($companyAddr) ?></div><?php endif; ?>
-      <?php if ($companyPhone): ?><div style="font-size:11px;opacity:.7"><i class="fas fa-phone me-1"></i><?= e($companyPhone) ?></div><?php endif; ?>
-    </div>
-    <div style="text-align:right">
-      <div style="font-size:11px;opacity:.7">REPAIR JOB TICKET</div>
-      <div style="font-size:22px;font-weight:800;color:#60a5fa"><?= e($job['job_number']) ?></div>
-      <div><?php
-        if ($job['priority'] === 'express') echo '<span class="priority-express">⚡ EXPRESS</span>';
-        elseif ($job['priority'] === 'urgent') echo '<span class="priority-urgent">⚠ URGENT</span>';
-        else echo '<span class="priority-normal">NORMAL</span>';
-      ?></div>
-    </div>
+
+  <div class="ticket-co-name"><?= e($companyName) ?></div>
+  <?php if ($companyAddr): ?><div class="ticket-co-sub"><?= e($companyAddr) ?></div><?php endif; ?>
+  <?php if ($companyPhone): ?><div class="ticket-co-sub"><?= e($companyPhone) ?></div><?php endif; ?>
+
+  <hr class="t-divider">
+  <div class="t-title">REPAIR JOB TICKET</div>
+  <div class="t-job-no"><?= e($job['job_number']) ?></div>
+  <div class="t-priority"><?= strtoupper($job['priority'] ?? 'NORMAL') ?> PRIORITY</div>
+
+  <div class="t-barcode-box">
+    <svg id="ticketBarcode"></svg>
   </div>
 
-  <div class="ticket-body">
+  <hr class="t-divider">
+  <div class="t-section-hd">Customer</div>
+  <div class="t-row"><span class="lbl">Name</span><span class="val"><?= e($job['cname']) ?></span></div>
+  <?php if ($job['cphone']): ?><div class="t-row"><span class="lbl">Phone</span><span class="val"><?= e($job['cphone']) ?></span></div><?php endif; ?>
+  <div class="t-row"><span class="lbl">Date In</span><span class="val"><?= date('d/m/Y', strtotime($job['created_at'])) ?></span></div>
+  <?php if ($job['estimated_delivery']): ?><div class="t-row"><span class="lbl">Est. Ready</span><span class="val"><?= date('d/m/Y', strtotime($job['estimated_delivery'])) ?></span></div><?php endif; ?>
 
-    <!-- Barcode -->
-    <div class="barcode-box mb-3" style="border:1px solid #e2e8f0;border-radius:8px">
-      <svg id="ticketBarcode"></svg>
-      <div style="font-size:12px;color:#64748b;font-weight:600"><?= e($job['job_number']) ?></div>
-    </div>
+  <hr class="t-divider">
+  <div class="t-section-hd">Device</div>
+  <div class="t-row"><span class="lbl">Brand</span><span class="val"><?= e($job['device_brand']) ?></span></div>
+  <div class="t-row"><span class="lbl">Model</span><span class="val"><?= e($job['device_model']) ?></span></div>
+  <?php if ($job['device_imei']): ?><div class="t-row"><span class="lbl">IMEI</span><span class="val"><?= e($job['device_imei']) ?></span></div><?php endif; ?>
+  <?php if ($job['device_color']): ?><div class="t-row"><span class="lbl">Color</span><span class="val"><?= e($job['device_color']) ?></span></div><?php endif; ?>
+  <?php if ($job['device_condition']): ?><div class="t-row"><span class="lbl">Condition</span><span class="val"><?= e($job['device_condition']) ?></span></div><?php endif; ?>
 
-    <!-- Customer & Date -->
-    <div class="ticket-section">
-      <div class="info-grid">
-        <div class="info-item"><label>Customer Name</label><span><?= e($job['cname']) ?></span></div>
-        <div class="info-item"><label>Phone</label><span><?= e($job['cphone'] ?: '—') ?></span></div>
-        <div class="info-item"><label>Date Received</label><span><?= date('d M Y', strtotime($job['created_at'])) ?></span></div>
-        <div class="info-item"><label>Est. Delivery</label><span><?= $job['estimated_delivery'] ? date('d M Y', strtotime($job['estimated_delivery'])) : 'TBD' ?></span></div>
-      </div>
-    </div>
+  <hr class="t-divider">
+  <div class="t-section-hd">Issue / Complaint</div>
+  <div style="font-size:8.5pt;margin:1mm 0"><?= e($job['issue_description']) ?></div>
+  <?php if ($job['customer_complaint'] && $job['customer_complaint'] !== $job['issue_description']): ?>
+  <div style="font-size:8pt;font-style:italic">"<?= e($job['customer_complaint']) ?>"</div>
+  <?php endif; ?>
 
-    <!-- Device -->
-    <div class="ticket-section">
-      <div class="section-title">Device Details</div>
-      <div class="info-grid">
-        <div class="info-item"><label>Brand</label><span><?= e($job['device_brand']) ?></span></div>
-        <div class="info-item"><label>Model</label><span><?= e($job['device_model']) ?></span></div>
-        <?php if ($job['device_imei']): ?><div class="info-item"><label>IMEI / Serial</label><span><?= e($job['device_imei']) ?></span></div><?php endif; ?>
-        <?php if ($job['device_color']): ?><div class="info-item"><label>Color</label><span><?= e($job['device_color']) ?></span></div><?php endif; ?>
-        <?php if ($job['device_condition']): ?><div class="info-item" style="grid-column:span 2"><label>Condition</label><span><?= e($job['device_condition']) ?></span></div><?php endif; ?>
-      </div>
-    </div>
+  <?php if (!empty($services)): ?>
+  <hr class="t-divider">
+  <div class="t-section-hd">Services</div>
+  <table class="t-svc-table">
+    <?php foreach ($services as $s): ?>
+    <tr><td><?= e($s['service_name']) ?></td><td class="r"><?= money((float)$s['price']) ?></td></tr>
+    <?php endforeach; ?>
+    <tr class="t-total"><td>TOTAL</td><td class="r"><?= money($serviceTotal) ?></td></tr>
+  </table>
+  <?php endif; ?>
 
-    <!-- Issue -->
-    <div class="ticket-section">
-      <div class="section-title">Issue / Complaint</div>
-      <div style="font-size:13px;color:#1e293b"><?= e($job['issue_description']) ?></div>
-      <?php if ($job['customer_complaint'] && $job['customer_complaint'] !== $job['issue_description']): ?>
-      <div style="font-size:12px;color:#64748b;margin-top:4px"><em>"<?= e($job['customer_complaint']) ?>"</em></div>
-      <?php endif; ?>
-    </div>
+  <hr class="t-divider">
+  <div class="t-row"><span class="lbl">Advance Paid</span><span class="val"><?= money((float)$job['advance_payment']) ?></span></div>
+  <div class="t-row"><span class="lbl">Balance Due</span><span class="val"><?= money(max(0,(float)$job['estimated_cost']-(float)$job['advance_payment'])) ?></span></div>
+  <?php if ($job['assigned_to']): ?><div class="t-row"><span class="lbl">Technician</span><span class="val"><?= e($job['tech_name']) ?></span></div><?php endif; ?>
 
-    <!-- Services -->
-    <?php if (!empty($services)): ?>
-    <div class="ticket-section">
-      <div class="section-title">Services Requested</div>
-      <table class="services-list w-100">
-        <?php foreach ($services as $s): ?>
-        <tr><td><?= e($s['service_name']) ?></td><td style="text-align:right;font-weight:600"><?= money((float)$s['price']) ?></td></tr>
-        <?php endforeach; ?>
-        <tr style="border-top:1px solid #e2e8f0;font-weight:700"><td>Estimated Total</td><td style="text-align:right"><?= money($serviceTotal) ?></td></tr>
-      </table>
-    </div>
-    <?php endif; ?>
-
-    <!-- Payment Info -->
-    <div class="ticket-section">
-      <div class="info-grid">
-        <div class="info-item"><label>Advance Paid</label><span style="color:#16a34a"><?= money((float)$job['advance_payment']) ?></span></div>
-        <div class="info-item"><label>Balance Due</label><span style="color:#dc2626"><?= money(max(0, (float)$job['estimated_cost'] - (float)$job['advance_payment'])) ?></span></div>
-        <?php if ($job['assigned_to']): ?>
-        <div class="info-item"><label>Assigned Technician</label><span><?= e($job['tech_name']) ?></span></div>
-        <?php endif; ?>
-      </div>
-    </div>
-
-    <!-- Customer Signature -->
-    <div class="ticket-section" style="border-bottom:none">
-      <div class="d-flex justify-content-between" style="margin-top:10px">
-        <div style="text-align:center;flex:1">
-          <div style="border-top:1px solid #334155;margin:0 20px 4px;"></div>
-          <div style="font-size:10px;color:#94a3b8">Customer Signature</div>
-        </div>
-        <div style="text-align:center;flex:1">
-          <div style="border-top:1px solid #334155;margin:0 20px 4px;"></div>
-          <div style="font-size:10px;color:#94a3b8">Staff Signature</div>
-        </div>
-      </div>
-    </div>
-
+  <div class="t-sig">
+    <div class="t-sig-item"><div class="t-sig-line"></div><div class="t-sig-lbl">Customer Signature</div></div>
+    <div class="t-sig-item"><div class="t-sig-line"></div><div class="t-sig-lbl">Staff Signature</div></div>
   </div>
 
-  <div class="ticket-footer">
-    <strong><?= e($companyName) ?></strong> | <?= e($companyPhone) ?><br>
-    <small>Keep this ticket safe. Warranty: <?= $warranty ?> days from delivery. Items not collected within 30 days will be discarded.</small>
+  <div class="t-footer">
+    <?= e($companyName) ?><?= $companyPhone ? ' | ' . e($companyPhone) : '' ?><br>
+    Warranty: <?= $warranty ?> days from delivery.<br>
+    Items not collected within 30 days will be discarded.
   </div>
+
 </div>
 <?php endif; ?>
 
@@ -219,11 +198,12 @@ $serviceTotal = array_sum(array_column($services, 'price'));
 <script>
 window.onload = function() {
   <?php if ($sticker): ?>
-  document.querySelectorAll('.stickerBarcode').forEach(function(el) {
-    try { JsBarcode(el, el.getAttribute('data-value'), { format:'CODE128', width:1.8, height:50, displayValue:true, fontSize:10, margin:2, lineColor:'#000', background:'#fff' }); } catch(e) {}
-  });
+  var el = document.querySelector('.stickerBarcode');
+  if (el) {
+    try { JsBarcode(el, el.getAttribute('data-value'), { format:'CODE128', width:1.5, height:36, displayValue:false, margin:2, lineColor:'#000', background:'#fff' }); } catch(e) {}
+  }
   <?php else: ?>
-  try { JsBarcode('#ticketBarcode', '<?= e($job['job_number']) ?>', { format:'CODE128', width:2, height:55, displayValue:false, margin:4, lineColor:'#000', background:'#fff' }); } catch(e) {}
+  try { JsBarcode('#ticketBarcode', '<?= e($job['job_number']) ?>', { format:'CODE128', width:1.5, height:40, displayValue:true, fontSize:9, margin:2, lineColor:'#000', background:'#fff' }); } catch(e) {}
   <?php endif; ?>
 };
 </script>
