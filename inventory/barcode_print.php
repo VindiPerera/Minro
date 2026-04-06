@@ -51,64 +51,69 @@ $isPrint     = isset($_GET['print']);
     justify-content: flex-start;
   }
 
+  /* Screen preview — proportional 2:1 */
   .barcode-label {
     background: white;
     color: #111;
     border: 1px dashed #bbb;
     border-radius: 4px;
-    padding: 3px 5px;
     width: 189px;
     height: 94px;
+    padding: 3px 5px;
     text-align: center;
     font-family: Arial, sans-serif;
     box-shadow: 0 1px 4px rgba(0,0,0,.12);
     overflow: hidden;
-  }
-  .barcode-label .label-company {
-    font-size: 7px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: #888;
-    margin-bottom: 1px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
   }
   .barcode-label .label-name {
-    font-size: 9px;
+    font-size: 8px;
     font-weight: 700;
     color: #111;
-    line-height: 1.2;
-    margin-bottom: 1px;
-    overflow: hidden;
+    line-height: 1.1;
     white-space: nowrap;
+    overflow: hidden;
     text-overflow: ellipsis;
   }
   .barcode-label .label-meta {
     font-size: 7px;
     color: #666;
-    margin-bottom: 1px;
+    line-height: 1;
   }
+  .barcode-label svg { max-width: 100%; display: block; }
   .barcode-label .label-price {
     font-size: 10px;
     font-weight: 800;
     color: #1e293b;
-    margin-top: 1px;
+    line-height: 1.1;
   }
-  .barcode-label svg { max-width: 100%; }
 
   @media print {
-    @page { size: 50mm 28mm; margin: 0; }
+    @page { size: 50mm 25mm; margin: 0; }
+    * { line-height: 1 !important; }
     body { background: white; }
     .no-print-bar { display: none; }
     .label-grid { padding: 0; gap: 0; flex-direction: column; align-items: flex-start; }
     .barcode-label {
       box-shadow: none;
       border: none;
+      border-radius: 0;
       width: 50mm !important;
       height: 25mm !important;
-      padding: 1mm 2mm !important;
-      margin-bottom: 3mm !important;
+      padding: 1mm 1.5mm !important;
+      margin: 0 !important;
       page-break-after: always;
+      break-after: page;
       overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
     }
+    .barcode-label .label-name  { font-size: 7.5pt !important; font-weight: 700 !important; }
+    .barcode-label .label-meta  { font-size: 6pt   !important; color: #555 !important; }
+    .barcode-label .label-price { font-size: 8.5pt  !important; font-weight: 800 !important; }
   }
 </style>
 </head>
@@ -142,12 +147,9 @@ $isPrint     = isset($_GET['print']);
 <div class="label-grid" id="labelGrid">
   <?php for ($i = 0; $i < $qty; $i++): ?>
   <div class="barcode-label">
-    <div class="label-company"><?= e($companyName) ?></div>
     <div class="label-name" title="<?= e($product['name']) ?>"><?= e($product['name']) ?></div>
     <?php if (!empty($product['brand']) || !empty($product['model'])): ?>
-    <div class="label-meta">
-      <?= $product['brand'] ? e($product['brand']) : '' ?><?= ($product['brand'] && $product['model']) ? ' · ' : '' ?><?= $product['model'] ? e($product['model']) : '' ?>
-    </div>
+    <div class="label-meta"><?= $product['brand'] ? e($product['brand']) : '' ?><?= ($product['brand'] && $product['model']) ? ' &middot; ' : '' ?><?= $product['model'] ? e($product['model']) : '' ?></div>
     <?php endif; ?>
     <svg class="barcode-svg-<?= $i ?>"></svg>
     <div class="label-price"><?= money((float)$product['selling_price']) ?></div>
@@ -162,13 +164,14 @@ const total = <?= $qty ?>;
 for (let i = 0; i < total; i++) {
   JsBarcode('.barcode-svg-' + i, barcodeValue, {
     format: 'CODE128',
-    width: 1.2,
-    height: 28,
+    width: 1.3,
+    height: 22,
     displayValue: true,
-    fontSize: 8,
-    lineColor: '#1e293b',
+    fontSize: 7,
+    lineColor: '#000',
     background: '#ffffff',
-    margin: 1
+    margin: 0,
+    textMargin: 1
   });
 }
 <?php if ($isPrint): ?>

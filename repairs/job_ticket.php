@@ -39,7 +39,7 @@ $serviceTotal = array_sum(array_column($services, 'price'));
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
 <style>
 <?php if ($sticker): ?>
-@page { size: 50mm 28mm; margin: 0; }
+@page { size: 50mm 25mm; margin: 0; }
 <?php else: ?>
 @page { size: 80mm auto; margin: 3mm 4mm; }
 <?php endif; ?>
@@ -50,13 +50,13 @@ body { background: #f8fafc; font-family: Arial, sans-serif; color: #000; }
 
 /* ── STICKER (direct thermal label) ───────────────────── */
 .sticker-wrap { display: flex; justify-content: center; padding: 30px; }
-.sticker { width: 50mm; height: 25mm; border: 1px dashed #888; padding: 1mm 2mm; background: #fff; text-align: center; overflow: hidden; }
-.sticker-company { font-size: 6.5pt; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; border-bottom: 1px solid #000; padding-bottom: 0.5mm; margin-bottom: 0.5mm; }
-.sticker-job     { font-size: 9pt; font-weight: 900; letter-spacing: 1px; margin: 0.3mm 0; }
-.sticker-device  { font-size: 7.5pt; font-weight: 700; margin-bottom: 0.3mm; }
-.sticker-cust    { font-size: 7pt; margin-bottom: 0.2mm; }
-.sticker-meta    { font-size: 6.5pt; }
-.sticker svg     { max-width: 100%; }
+.sticker { width: 50mm; height: 25mm; border: 1px dashed #888; padding: 1mm 1.5mm; background: #fff; text-align: center; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; }
+.sticker-company { font-size: 6pt; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; border-bottom: 1px solid #000; padding-bottom: 0.3mm; line-height: 1; }
+.sticker-job     { font-size: 8.5pt; font-weight: 900; letter-spacing: 1px; line-height: 1; }
+.sticker-device  { font-size: 7pt; font-weight: 700; line-height: 1; }
+.sticker-cust    { font-size: 6.5pt; line-height: 1; }
+.sticker-meta    { font-size: 6pt; line-height: 1; }
+.sticker svg     { max-width: 100%; display: block; }
 
 /* ── TICKET (80mm direct thermal) ─────────────────────── */
 .ticket { width: 72mm; margin: 20px auto; background: #fff; padding: 2mm; font-size: 8.5pt; line-height: 1.4; }
@@ -85,7 +85,7 @@ body { background: #f8fafc; font-family: Arial, sans-serif; color: #000; }
   body { background: white; }
   .no-print { display: none; }
   <?php if ($sticker): ?>
-  .sticker { border: none; width: 50mm; height: 25mm; padding: 1mm 2mm; margin-bottom: 3mm; }
+  .sticker { border: none; width: 50mm; height: 25mm; padding: 1mm 1.5mm; margin: 0; }
   .sticker-wrap { padding: 0; }
   <?php else: ?>
   .ticket { width: 100%; margin: 0; padding: 0; }
@@ -200,7 +200,7 @@ window.onload = function() {
   <?php if ($sticker): ?>
   var el = document.querySelector('.stickerBarcode');
   if (el) {
-    try { JsBarcode(el, el.getAttribute('data-value'), { format:'CODE128', width:1.1, height:22, displayValue:false, margin:1, lineColor:'#000', background:'#fff' }); } catch(e) {}
+    try { JsBarcode(el, el.getAttribute('data-value'), { format:'CODE128', width:1.1, height:18, displayValue:false, margin:0, lineColor:'#000', background:'#fff' }); } catch(e) {}
   }
   <?php else: ?>
   try { JsBarcode('#ticketBarcode', '<?= e($job['job_number']) ?>', { format:'CODE128', width:1.5, height:40, displayValue:true, fontSize:9, margin:2, lineColor:'#000', background:'#fff' }); } catch(e) {}
