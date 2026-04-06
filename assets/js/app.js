@@ -111,20 +111,35 @@ $(document).ready(function () {
       <style>
         body { font-family: 'Courier New', monospace; background: white; color: black; }
         .no-print { display: none; }
+        img { filter: none !important; }
+        div[style*="background:#1e293b"], div[style*="background: #1e293b"] {
+          background: white !important; color: #111 !important;
+        }
       </style>
       </head><body>
       ${el.innerHTML}
-      <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"><\/script>
       <script>
-        window.onload = function() {
+        function doPrint() {
           if (typeof JsBarcode !== 'undefined') {
             document.querySelectorAll('[data-barcode]').forEach(function(el) {
               try { JsBarcode(el, el.getAttribute('data-barcode'), { format:'CODE128', width:2, height:50, displayValue:true, fontSize:11 }); } catch(e) {}
             });
           }
-          setTimeout(() => { window.print(); window.close(); }, 500);
+          setTimeout(function() { window.print(); window.close(); }, 300);
+        }
+        window.onload = function() {
+          var imgs = document.querySelectorAll('img');
+          if (imgs.length === 0) { doPrint(); return; }
+          var loaded = 0;
+          imgs.forEach(function(img) {
+            if (img.complete) { loaded++; if (loaded >= imgs.length) doPrint(); }
+            else {
+              img.onload = img.onerror = function() { loaded++; if (loaded >= imgs.length) doPrint(); };
+            }
+          });
         };
-      </scr` + `ipt>
+      <\/script>
       </body></html>`);
     win.document.close();
   };
