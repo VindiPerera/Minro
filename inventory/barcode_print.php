@@ -66,27 +66,34 @@ $isPrint     = isset($_GET['print']);
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    justify-content: center;
+    align-items: center;
+    gap: 3px;
   }
   .barcode-label .label-name {
-    font-size: 6px;
-    font-weight: 700;
+    font-size: 11px;
+    font-weight: 900;
     color: #111;
     line-height: 1;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    width: 100%;
   }
   .barcode-label .label-meta {
-    font-size: 5px;
-    color: #666;
-    line-height: 1;
+    display: none;
   }
-  .barcode-label svg { max-width: 100%; display: block; }
+  .barcode-label svg { 
+    max-width: 100%; 
+    max-height: 50px; 
+    display: block; 
+    margin: 0 auto;
+    object-fit: contain; 
+  }
   .barcode-label .label-price {
-    font-size: 7px;
-    font-weight: 800;
-    color: #1e293b;
+    font-size: 12px;
+    font-weight: 900;
+    color: #000;
     line-height: 1;
   }
 
@@ -113,28 +120,30 @@ $isPrint     = isset($_GET['print']);
     .barcode-label {
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
+      justify-content: center;
+      align-items: center;
+      gap: 1.5mm;
       box-shadow: none;
       border: none;
       border-radius: 0;
       width: 50mm !important;
       height: 25mm !important;
-      padding: 0.5mm 1mm !important;
+      padding: 1.5mm !important;
       margin: 0 0 3mm 0 !important; /* 3mm vertical gap */
       overflow: hidden;
       box-sizing: border-box;
       page-break-after: always;
       break-after: page;
     }
-    .barcode-label .label-name  { font-size: 5pt !important;  font-weight: 700 !important; line-height: 1 !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-shrink: 0; }
-    .barcode-label .label-meta  { display: none !important; }
-    .barcode-label .label-price { font-size: 6pt !important;  font-weight: 800 !important; line-height: 1 !important; flex-shrink: 0; }
+    .barcode-label .label-name  { font-size: 8pt !important; font-weight: 900 !important; line-height: 1 !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-shrink: 0; width: 100%; text-align: center; }
+    .barcode-label .label-price { font-size: 9pt !important; font-weight: 900 !important; line-height: 1 !important; flex-shrink: 0; margin-top: 0.5mm !important; }
     .barcode-label svg {
       display: block !important;
-      width: 48mm !important;
-      height: 17mm !important;
+      margin: 0 auto !important;
+      max-width: 100% !important;
+      height: 14mm !important;
       flex-shrink: 0;
-      overflow: visible !important;
+      object-fit: fill !important;
     }
   }
 </style>
@@ -186,25 +195,13 @@ const total = <?= $qty ?>;
 for (let i = 0; i < total; i++) {
   JsBarcode('.barcode-svg-' + i, barcodeValue, {
     format: 'CODE128',
-    width: 1.5,
-    height: 28,
+    width: 1.8,
+    height: 48,
     displayValue: false,
     lineColor: '#000',
     background: '#ffffff',
     margin: 0
   });
-  // Make SVG scale to CSS dimensions by replacing px attrs with a viewBox
-  const svg = document.querySelector('.barcode-svg-' + i);
-  if (svg) {
-    const w = svg.getAttribute('width');
-    const h = svg.getAttribute('height');
-    if (w && h) {
-      svg.setAttribute('viewBox', '0 0 ' + w + ' ' + h);
-      svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
-      svg.removeAttribute('width');
-      svg.removeAttribute('height');
-    }
-  }
 }
 <?php if ($isPrint): ?>
 window.onload = function() { setTimeout(() => window.print(), 400); };
