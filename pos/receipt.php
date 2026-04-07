@@ -32,30 +32,45 @@ $isPrint  = isset($_GET['print']);
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
 <style>
-  body { background: #0f172a; color: #e2e8f0; font-family: 'Segoe UI', sans-serif; }
-  .receipt-wrap { max-width: 380px; margin: 40px auto; background: white; color: #111; border-radius: 12px; overflow: hidden; font-family: 'Courier New', monospace; font-size: 13px; }
-  .receipt-header { background: #1e293b; color: white; padding: 20px; text-align: center; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
-  .receipt-body { padding: 20px; }
-  .receipt-footer { background: #f8f9fa; padding: 14px 20px; text-align: center; font-size: 11px; color: #666; }
-  .dashed { border-top: 1.5px dashed #ccc; margin: 12px 0; }
-  .total-row { font-weight: 700; font-size: 15px; }
-  table { width: 100%; }
-  td { padding: 3px 0; }
+  body { background: #0f172a; color: #e2e8f0; font-family: 'Segoe UI', Arial, sans-serif; }
+  .receipt-wrap { max-width: 380px; margin: 40px auto; background: white; color: #000; overflow: hidden; font-family: Arial, Helvetica, sans-serif; font-size: 14px; padding: 20px; box-sizing: border-box; }
+  .receipt-header { text-align: center; margin-bottom: 10px; }
+  .receipt-logo { max-height: 80px; margin-bottom: 5px; }
+  .company-name { font-size: 26px; font-weight: 900; letter-spacing: 1px; margin-bottom: 2px; }
+  .company-contact { font-size: 14px; line-height: 1.4; margin-bottom: 8px; }
+  
+  .dashed { border-top: 1px dashed #000; margin: 12px 0; }
+  .solid { border-top: 2px solid #000; margin: 12px 0; }
+  
+  .receipt-title { text-align: center; font-size: 18px; font-weight: 700; letter-spacing: 2px; margin: 10px 0; }
+  .invoice-number { text-align: center; font-size: 28px; font-weight: 900; margin-bottom: 5px; }
+  
+  .section-label { font-size: 16px; font-weight: 700; letter-spacing: 1px; margin-bottom: 8px; }
+  
+  table { width: 100%; border-collapse: collapse; }
+  td { padding: 4px 0; vertical-align: top; }
+  td.label { color: #555; width: 40%; }
+  td.value { font-weight: 700; text-align: right; }
+  
+  .items-table { margin-bottom: 15px; }
+  .items-table th { padding: 4px 0; font-weight: 700; text-align: left; }
+  .items-table td.qty { text-align: center; }
+  .items-table td.price, .items-table th.price { text-align: right; }
+  .items-table td.total, .items-table th.total { text-align: right; font-weight: 700; }
+  
+  .totals-table td.label { color: #555; }
+  .total-row { font-weight: 900; font-size: 16px; }
+  
+  .signature-area { display: flex; justify-content: space-between; margin-top: 40px; }
+  .sig-line { border-top: 1px solid #000; width: 45%; text-align: center; padding-top: 5px; font-size: 12px; }
+  
+  .receipt-footer { text-align: center; font-size: 12px; margin-top: 15px; line-height: 1.5; }
+  
   .no-print-bar { text-align: center; padding: 20px; }
   @media print {
     body { background: white; margin: 0; padding: 0; }
     .no-print-bar { display: none !important; }
-    .receipt-wrap { margin: 0; border-radius: 0; box-shadow: none; max-width: 80mm; }
-    .receipt-header {
-      background: white !important;
-      color: #111 !important;
-      -webkit-print-color-adjust: exact;
-      print-color-adjust: exact;
-    }
-    .receipt-header img {
-      filter: none !important;
-      max-height: 40px !important;
-    }
+    .receipt-wrap { margin: 0 auto; box-shadow: none; max-width: 80mm; padding: 0; }
   }
 </style>
 </head>
@@ -67,73 +82,94 @@ $isPrint  = isset($_GET['print']);
 
 <div class="receipt-wrap" id="receiptPrint">
   <div class="receipt-header">
-    <div style="margin-bottom:8px">
-      <img src="<?= BASE_URL ?>/assets/logo.png" alt="logo" style="max-height:48px;max-width:160px;object-fit:contain;filter:brightness(0) invert(1)">
+    <img src="<?= BASE_URL ?>/assets/logo.png" alt="logo" class="receipt-logo" onerror="this.onerror=null; this.src='https://via.placeholder.com/150x50?text=LOGO';">
+    <div class="company-name"><?= e($company) ?></div>
+    <div class="company-contact">
+      <?php if ($addr): ?><?= e($addr) ?><br><?php endif; ?>
+      <?php if ($phone): ?><?= e($phone) ?><br><?php endif; ?>
     </div>
-    <div style="font-size:22px;font-weight:800;letter-spacing:2px"><?= e($company) ?></div>
-    <?php if ($addr): ?><div style="font-size:11px;opacity:.8"><?= e($addr) ?></div><?php endif; ?>
-    <?php if ($phone): ?><div style="font-size:11px;opacity:.8"><?= e($phone) ?></div><?php endif; ?>
   </div>
 
-  <div class="receipt-body">
-    <div style="text-align:center;margin-bottom:12px">
-      <svg data-barcode="<?= e($sale['invoice_number']) ?>" style="display:block;margin:0 auto;width:50mm;height:25mm;"></svg>
-    </div>
+  <div class="dashed"></div>
+  <div class="receipt-title" style="font-size: 20px; margin-bottom: 5px;">SALES RECEIPT</div>
+  <div class="invoice-number" style="font-size: 22px; letter-spacing: 1px;"><?= e($sale['invoice_number']) ?></div>
+  <div class="dashed"></div>
 
-    <table>
-      <tr><td style="color:#666">Invoice:</td><td style="text-align:right;font-weight:700"><?= e($sale['invoice_number']) ?></td></tr>
-      <tr><td style="color:#666">Date:</td><td style="text-align:right"><?= niceDateTime($sale['sale_date']) ?></td></tr>
-      <tr><td style="color:#666">Customer:</td><td style="text-align:right"><?= e($sale['cname']) ?></td></tr>
-      <?php if ($sale['cphone']): ?><tr><td style="color:#666">Phone:</td><td style="text-align:right"><?= e($sale['cphone']) ?></td></tr><?php endif; ?>
-      <tr><td style="color:#666">Cashier:</td><td style="text-align:right"><?= e($sale['cashier_name']) ?></td></tr>
-    </table>
+  <div style="text-align: center; font-size: 14px; margin-bottom: 10px;">
+    Cashier: <strong><?= e($sale['cashier_name']) ?></strong>
+  </div>
 
-    <div class="dashed"></div>
-    <table>
-      <tr style="font-weight:700;border-bottom:1px solid #ddd">
-        <td>Item</td><td style="text-align:center">Qty</td><td style="text-align:right">Price</td><td style="text-align:right">Total</td>
-      </tr>
-      <tr><td colspan="4" style="padding-bottom:4px"></td></tr>
-      <?php foreach ($items as $item): ?>
+  <div class="section-label">CUSTOMER</div>
+  <table>
+    <tr><td class="label">Name</td><td class="value"><?= e($sale['cname']) ?></td></tr>
+    <?php if ($sale['cphone']): ?><tr><td class="label">Phone</td><td class="value"><?= e($sale['cphone']) ?></td></tr><?php endif; ?>
+    <tr><td class="label">Date</td><td class="value"><?= niceDateTime($sale['sale_date']) ?></td></tr>
+  </table>
+
+  <div class="dashed"></div>
+  <div class="section-label">PRODUCTS</div>
+  <div class="solid" style="border-top: 2px solid #000; margin-bottom: 10px; margin-top: 0;"></div>
+  
+  <table class="items-table">
+    <thead>
       <tr>
-        <td><?= e($item['product_name']) ?></td>
-        <td style="text-align:center"><?= $item['quantity'] ?></td>
-        <td style="text-align:right"><?= money((float)$item['unit_price']) ?></td>
-        <td style="text-align:right"><?= money((float)$item['total']) ?></td>
+        <th style="width: 35%; border-bottom: 1px solid #ccc; padding-bottom: 5px;">Item</th>
+        <th style="width: 15%; text-align: center; border-bottom: 1px solid #ccc; padding-bottom: 5px;">Qty</th>
+        <th style="width: 25%; text-align: right; border-bottom: 1px solid #ccc; padding-bottom: 5px;">Price</th>
+        <th style="width: 25%; text-align: right; border-bottom: 1px solid #ccc; padding-bottom: 5px;">Total</th>
       </tr>
-      <?php endforeach; ?>
-    </table>
+    </thead>
+    <tbody>
+    <?php foreach ($items as $item): ?>
+    <tr>
+      <td style="font-weight: 700; padding: 4px 0; word-break: break-word;"><?= e($item['product_name']) ?></td>
+      <td style="text-align: center; padding: 4px 0;"><?= $item['quantity'] ?></td>
+      <td style="text-align: right; padding: 4px 0; white-space: nowrap;"><?= money((float)$item['unit_price']) ?></td>
+      <td style="text-align: right; padding: 4px 0; white-space: nowrap;"><?= money((float)$item['total']) ?></td>
+    </tr>
+    <?php endforeach; ?>
+    </tbody>
+  </table>
 
-    <div class="dashed"></div>
-    <table>
-      <tr><td style="color:#666">Subtotal</td><td style="text-align:right"><?= money((float)$sale['subtotal']) ?></td></tr>
-      <?php if ((float)$sale['discount'] > 0): ?>
-      <tr><td style="color:#666">Discount</td><td style="text-align:right;color:#dc2626">− <?= money((float)$sale['discount']) ?></td></tr>
-      <?php endif; ?>
-      <?php if ((float)$sale['tax'] > 0): ?>
-      <tr><td style="color:#666">Tax</td><td style="text-align:right"><?= money((float)$sale['tax']) ?></td></tr>
-      <?php endif; ?>
-      <tr class="total-row"><td>TOTAL</td><td style="text-align:right"><?= money((float)$sale['total']) ?></td></tr>
-      <div class="dashed" style="margin:6px 0"></div>
-      <tr><td style="color:#666">Paid (<?= ucfirst($sale['payment_method']) ?>)</td><td style="text-align:right"><?= money((float)$sale['paid_amount']) ?></td></tr>
-      <tr><td style="color:#666">Change</td><td style="text-align:right"><?= money((float)$sale['change_amount']) ?></td></tr>
-    </table>
-
-    <?php if ($sale['notes']): ?>
-    <div class="dashed"></div>
-    <div style="font-size:11px;color:#666"><strong>Note:</strong> <?= e($sale['notes']) ?></div>
+  <div class="dashed"></div>
+  <table class="totals-table">
+    <tr><td class="label" style="font-size: 15px;">Subtotal</td><td class="value" style="font-size: 15px;"><?= money((float)$sale['subtotal']) ?></td></tr>
+    <?php if ((float)$sale['discount'] > 0): ?>
+    <tr><td class="label" style="font-size: 15px;">Discount</td><td class="value" style="font-size: 15px;">− <?= money((float)$sale['discount']) ?></td></tr>
     <?php endif; ?>
+    <?php if ((float)$sale['tax'] > 0): ?>
+    <tr><td class="label" style="font-size: 15px;">Tax</td><td class="value" style="font-size: 15px;"><?= money((float)$sale['tax']) ?></td></tr>
+    <?php endif; ?>
+  </table>
+  
+  <div class="dashed"></div>
+  <table class="totals-table" style="margin: 8px 0;">
+    <tr class="total-row"><td class="label" style="color: #000; font-size: 18px;">TOTAL</td><td class="value" style="font-size: 18px; font-weight: 900;"><?= money((float)$sale['total']) ?></td></tr>
+  </table>
+  
+  <div class="dashed"></div>
+  <table class="totals-table">
+    <tr><td class="label" style="font-weight: normal; color: #555;">Paid (<?= ucfirst($sale['payment_method']) ?>)</td><td class="value" style="font-weight: normal;"><?= money((float)$sale['paid_amount']) ?></td></tr>
+    <tr><td class="label" style="font-weight: normal; color: #555;">Change</td><td class="value" style="font-weight: normal;"><?= money((float)$sale['change_amount']) ?></td></tr>
+  </table>
+
+  <div class="dashed" style="margin-top: 20px;"></div>
+  
+  <?php if ($sale['notes']): ?>
+  <div style="font-size: 14px; text-align: center; margin-bottom: 20px;">
+    <strong>Warranty Period:</strong> <?= e($sale['notes']) ?>
   </div>
+  <?php endif; ?>
 
   <div class="receipt-footer">
-    <div style="font-weight:700;margin-bottom:4px"><?= e($footer) ?></div>
-    <div>Items are non-refundable after 7 days</div>
+    <?= e($company) ?> | <?= e($phone) ?><br>
+    <?= e($footer) ?><br>
+    Items are non-refundable after 7 days.<br><br>
+    <strong>Powered by JAAN Network</strong>
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
 <script>
-  JsBarcode("[data-barcode]", "<?= e($sale['invoice_number']) ?>", { format:'CODE128', width:2, height:50, displayValue:true, fontSize:11, lineColor:'#000', background:'#fff' });
   <?php if ($isPrint): ?>window.onload = function() { window.print(); };<?php endif; ?>
 </script>
 </body>

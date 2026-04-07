@@ -20,7 +20,7 @@ if (file_exists(__DIR__ . '/db_config.php')) {
 define('APP_NAME',    'Minro POS');
 define('APP_VERSION', '1.0.0');
 define('BASE_PATH',   dirname(__DIR__));
-define('BASE_URL',    (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . rtrim(dirname(dirname($_SERVER['SCRIPT_NAME'] ?? '')), '/'));
+define('BASE_URL',    (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . rtrim(str_replace('\\', '/', dirname(dirname($_SERVER['SCRIPT_NAME'] ?? ''))), '/'));
 
 // -------------------------------------------------------
 // Database Connection (PDO Singleton)

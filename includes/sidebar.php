@@ -26,10 +26,15 @@ $user = currentUser();
       <span>Dashboard</span>
     </a>
 
-    <a href="<?= BASE_URL ?>/pos/index.php" class="nav-item <?= isActive('/pos') ?>">
+    <a href="<?= BASE_URL ?>/pos/index.php" class="nav-item <?= isActive('/pos/index') ?>">
       <i class="fas fa-cash-register nav-icon"></i>
       <span>Point of Sale</span>
       <span class="nav-badge">POS</span>
+    </a>
+
+    <a href="<?= BASE_URL ?>/pos/quotation.php" class="nav-item <?= isActive('/pos/quotation') ?>">
+      <i class="fas fa-file-invoice nav-icon"></i>
+      <span>Quotation</span>
     </a>
 
     <div class="nav-section-label">Repair</div>

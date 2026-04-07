@@ -18,6 +18,16 @@ require_once __DIR__ . '/../includes/header.php';
 ?>
 
 <style>
+/* Remove spin buttons from number inputs */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
 .pos-wrap { display: grid; grid-template-columns: 1fr 400px; height: calc(100vh - 64px); overflow: hidden; margin: -24px; }
 .pos-left { overflow: hidden; display: flex; flex-direction: column; background: #0f172a; }
 .pos-right { background: #1e293b; border-left: 1px solid #334155; display: flex; flex-direction: column; overflow: hidden; }
@@ -150,18 +160,29 @@ require_once __DIR__ . '/../includes/header.php';
 
     <!-- Cart Footer: Totals + Payment -->
     <div class="cart-footer">
-      <!-- Discount -->
-      <div class="d-flex gap-2 mb-3 align-items-center">
-        <label class="text-muted small mb-0" style="white-space:nowrap">Discount</label>
-        <div class="input-group input-group-sm">
-          <input type="number" id="discountValue" class="form-control" value="0" min="0" step="0.01">
-          <select id="discountType" class="form-select" style="max-width:60px">
-            <option value="flat">Rs</option>
-            <option value="pct">%</option>
-          </select>
+      <!-- Discount & Warranty -->
+      <div class="row g-2 mb-3">
+        <div class="col-6">
+          <label class="text-muted small mb-1">Discount</label>
+          <div class="input-group input-group-sm">
+            <input type="number" id="discountValue" class="form-control" value="0" min="0" step="0.01">
+            <select id="discountType" class="form-select" style="max-width:60px">
+              <option value="flat">Rs</option>
+              <option value="pct">%</option>
+            </select>
+          </div>
         </div>
-        <label class="text-muted small mb-0" style="white-space:nowrap">Note</label>
-        <input type="text" id="saleNote" class="form-control form-control-sm" placeholder="Optional note">
+        <div class="col-6">
+          <label class="text-muted small mb-1">Warranty</label>
+          <div class="input-group input-group-sm flex-nowrap">
+            <select id="warrantyType" class="form-select flex-shrink-0" style="width: 85px;">
+              <option value="Days">Days</option>
+              <option value="Months">Months</option>
+              <option value="Years">Years</option>
+            </select>
+            <input type="number" id="warrantyValue" class="form-control" placeholder="0" min="0">
+          </div>
+        </div>
       </div>
 
       <!-- Totals -->
@@ -420,6 +441,10 @@ $("#btnProcessSale").on("click", function() {
   const paid  = parseFloat($("#paidAmount").val()) || 0;
   if (paid < total) { toast("Paid amount is less than total!", "error"); return; }
 
+  let wVal = $("#warrantyValue").val();
+  let wType = $("#warrantyType").val();
+  let wStr = (wVal && parseFloat(wVal) > 0) ? wVal + " " + wType : "";
+
   const data = {
     action: "process_sale",
     customer_id: $("#customerSelect").val() || "",
@@ -431,7 +456,7 @@ $("#btnProcessSale").on("click", function() {
     paid_amount: paid.toFixed(2),
     change_amount: (paid - total).toFixed(2),
     payment_method: paymentMethod,
-    notes: $("#saleNote").val()
+    notes: wStr
   };
 
   $("#btnProcessSale").prop("disabled", true).html(\'<i class="fas fa-spinner fa-spin me-2"></i>Processing...\');
@@ -440,12 +465,7 @@ $("#btnProcessSale").on("click", function() {
     if (res.success) {
       // Show receipt
       $("#receiptContent").html(res.receipt_html);
-      // Render barcodes in modal
-      if (typeof JsBarcode !== "undefined") {
-        $("[data-barcode]").each(function() {
-          try { JsBarcode(this, $(this).data("barcode"), { format:"CODE128", width:1.5, height:40, displayValue:true, fontSize:10, margin:3, lineColor:"#000", background:"#fff" }); } catch(e) {}
-        });
-      }
+      
       const receiptModal = new bootstrap.Modal(document.getElementById("receiptModal"));
       receiptModal.show();
       // Reset cart

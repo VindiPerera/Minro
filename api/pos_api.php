@@ -72,13 +72,24 @@ try {
                 if ($cn) $customerName = $cn;
             }
 
+            $cashierName = 'Staff';
+            $ca = $db->prepare("SELECT name FROM users WHERE id=?");
+            $ca->execute([$_SESSION['user_id']]);
+            $can = $ca->fetchColumn();
+            if ($can) $cashierName = $can;
+
             $itemsHtml = '';
             foreach ($cart as $item) {
-                $itemsHtml .= "<tr><td>{$item['name']}</td><td style='text-align:center'>{$item['qty']}</td><td style='text-align:right'>" . money($item['price']) . "</td><td style='text-align:right'>" . money($item['price'] * $item['qty']) . "</td></tr>";
+                $itemsHtml .= "<tr>";
+                $itemsHtml .= "<td style='font-weight:700;width:35%;padding:4px 0;word-break:break-word;'>{$item['name']}</td>";
+                $itemsHtml .= "<td style='text-align:center;width:15%;padding:4px 0;'>{$item['qty']}</td>";
+                $itemsHtml .= "<td style='text-align:right;width:25%;padding:4px 0;white-space:nowrap;'>" . money($item['price']) . "</td>";
+                $itemsHtml .= "<td style='text-align:right;width:25%;padding:4px 0;white-space:nowrap;'>" . money($item['price'] * $item['qty']) . "</td>";
+                $itemsHtml .= "</tr>";
             }
 
-            $discHtml  = $discount > 0 ? "<tr><td style='color:#666'>Discount</td><td style='text-align:right;color:#dc2626'>− " . money($discount) . "</td></tr>" : '';
-            $changeHtml = "<tr><td style='color:#666'>Paid (" . ucfirst($paymentMethod) . ")</td><td style='text-align:right'>" . money($paidAmount) . "</td></tr><tr><td style='color:#666'>Change</td><td style='text-align:right'>" . money($changeAmount) . "</td></tr>";
+            $discHtml  = $discount > 0 ? "<tr><td style='color:#555;padding:4px 0;font-size:15px;'>Discount</td><td style='text-align:right;color:#dc2626;font-weight:700;padding:4px 0;font-size:15px;white-space:nowrap;'>− " . money($discount) . "</td></tr>" : '';
+            $changeHtml = "<tr><td style='color:#555;padding:4px 0;font-weight:normal;'>Paid (" . ucfirst($paymentMethod) . ")</td><td style='text-align:right;font-weight:normal;padding:4px 0;'><span style='margin-right:2px;'></span>" . money($paidAmount) . "</td></tr><tr><td style='color:#555;padding:4px 0;font-weight:normal;'>Change</td><td style='text-align:right;font-weight:normal;padding:4px 0;'><span style='margin-right:2px;'></span>" . money($changeAmount) . "</td></tr>";
 
             // Embed logo as base64 so it works in print popup (about:blank)
             $logoPath = BASE_PATH . '/assets/logo.png';
@@ -89,42 +100,70 @@ try {
             }
 
             $logoHtml = $logoDataUri
-                ? "<div style='margin-bottom:6px'><img src='$logoDataUri' alt='logo' style='max-height:54px;max-width:220px;object-fit:contain'></div>"
+                ? "<img src='$logoDataUri' alt='logo' style='max-height:80px;margin-bottom:5px;'>"
                 : '';
 
             $receiptHtml = "
-            <div id='receiptPrint' style='font-family:Courier New,monospace;font-size:13px;max-width:360px;margin:0 auto;'>
-              <div style='background:#1e293b;color:white;padding:16px;text-align:center;border-radius:8px 8px 0 0'>
+            <div id='receiptPrint' style='font-family:Arial,Helvetica,sans-serif;font-size:14px;max-width:380px;margin:0 auto;background:white;color:#000;padding:20px;box-sizing:border-box;'>
+              <div style='text-align:center;margin-bottom:10px;'>
                 $logoHtml
-                <div style='font-size:20px;font-weight:800;letter-spacing:2px'>$companyName</div>
-                " . ($companyAddr ? "<div style='font-size:11px;opacity:.8'>$companyAddr</div>" : '') . "
-                " . ($companyPhone ? "<div style='font-size:11px;opacity:.8'>$companyPhone</div>" : '') . "
-              </div>
-              <div style='background:white;color:#111;padding:16px'>
-                <div style='text-align:center;margin-bottom:10px'>
-                  <svg data-barcode='$invNum'></svg>
+                <div style='font-size:26px;font-weight:900;letter-spacing:1px;margin-bottom:2px;'>$companyName</div>
+                <div style='font-size:14px;line-height:1.4;margin-bottom:8px;'>
+                    " . ($companyAddr ? "$companyAddr<br>" : '') . "
+                    " . ($companyPhone ? "$companyPhone<br>" : '') . "
                 </div>
-                <table style='width:100%'>
-                  <tr><td style='color:#666'>Invoice:</td><td style='text-align:right;font-weight:700'>$invNum</td></tr>
-                  <tr><td style='color:#666'>Date:</td><td style='text-align:right'>" . date('M d, Y h:i A') . "</td></tr>
-                  <tr><td style='color:#666'>Customer:</td><td style='text-align:right'>$customerName</td></tr>
-                </table>
-                <hr style='border-top:1.5px dashed #ccc;margin:10px 0'>
-                <table style='width:100%'>
-                  <tr style='font-weight:700'><td>Item</td><td style='text-align:center'>Qty</td><td style='text-align:right'>Price</td><td style='text-align:right'>Total</td></tr>
-                  $itemsHtml
-                </table>
-                <hr style='border-top:1.5px dashed #ccc;margin:10px 0'>
-                <table style='width:100%'>
-                  <tr><td style='color:#666'>Subtotal</td><td style='text-align:right'>" . money($subtotal) . "</td></tr>
-                  $discHtml
-                  <tr style='font-size:16px;font-weight:700'><td>TOTAL</td><td style='text-align:right'>" . money($total) . "</td></tr>
-                  $changeHtml
-                </table>
               </div>
-              <div style='background:#f8f9fa;color:#555;padding:12px;text-align:center;font-size:11px;border-radius:0 0 8px 8px'>
-                <div style='font-weight:700'>$footerMsg</div>
-                <a href='" . BASE_URL . "/pos/receipt.php?id=$saleId' target='_blank' style='color:#2563eb;font-size:11px'>View Full Receipt →</a>
+              <div style='border-top:1px dashed #000;margin:12px 0;'></div>
+              <div style='text-align:center;font-size:20px;font-weight:700;letter-spacing:2px;margin:10px 0;margin-bottom:5px;'>SALES RECEIPT</div>
+              <div style='text-align:center;font-size:22px;font-weight:900;margin-bottom:5px;letter-spacing:1px;'>$invNum</div>
+              <div style='border-top:1px dashed #000;margin:12px 0;'></div>
+              
+              <div style='text-align:center;font-size:14px;margin-bottom:10px;'>Cashier: <strong>$cashierName</strong></div>
+              
+              <div style='font-size:16px;font-weight:700;letter-spacing:1px;margin-bottom:8px;'>CUSTOMER</div>
+              <table style='width:100%;border-collapse:collapse;'>
+                <tr><td style='color:#555;width:40%;padding:4px 0;'>Name</td><td style='text-align:right;font-weight:700;padding:4px 0;'>$customerName</td></tr>
+                <tr><td style='color:#555;width:40%;padding:4px 0;'>Date</td><td style='text-align:right;font-weight:700;padding:4px 0;'>" . date('M d, Y h:i A') . "</td></tr>
+              </table>
+              
+              <div style='border-top:1px dashed #000;margin:12px 0;'></div>
+              <div style='font-size:16px;font-weight:700;letter-spacing:1px;margin-bottom:5px;'>PRODUCTS</div>
+              <div style='border-top:2px solid #000;margin-bottom:10px;margin-top:0;'></div>
+              
+              <table style='width:100%;border-collapse:collapse;margin-bottom:15px;'>
+                <thead>
+                  <tr style='font-weight:700;'>
+                    <td style='width:35%;padding-bottom:5px;border-bottom:1px solid #ccc;'>Item</td>
+                    <td style='width:15%;text-align:center;padding-bottom:5px;border-bottom:1px solid #ccc;'>Qty</td>
+                    <td style='width:25%;text-align:right;padding-bottom:5px;border-bottom:1px solid #ccc;'>Price</td>
+                    <td style='width:25%;text-align:right;padding-bottom:5px;border-bottom:1px solid #ccc;'>Total</td>
+                  </tr>
+                </thead>
+                <tbody>
+                  $itemsHtml
+                </tbody>
+              </table>
+              <div style='border-top:1px dashed #000;margin:12px 0;'></div>
+              <table style='width:100%;border-collapse:collapse;'>
+                <tr><td style='color:#555;padding:4px 0;font-size:15px;'>Subtotal</td><td style='text-align:right;font-weight:700;padding:4px 0;font-size:15px;white-space:nowrap;'>" . money($subtotal) . "</td></tr>
+                $discHtml
+              </table>
+              <div style='border-top:1px dashed #000;margin:12px 0;'></div>
+              <table style='width:100%;border-collapse:collapse;margin:8px 0;'>
+                <tr style='font-weight:900;font-size:18px;'><td style='color:#000;padding:4px 0;'>TOTAL</td><td style='text-align:right;padding:4px 0;white-space:nowrap;'>" . money($total) . "</td></tr>
+              </table>
+              <div style='border-top:1px dashed #000;margin:12px 0;'></div>
+              <table style='width:100%;border-collapse:collapse;'>
+                $changeHtml
+              </table>
+              <div style='border-top:1px dashed #000;margin-top:20px;margin-bottom:12px;'></div>
+              " . (!empty($notes) ? "<div style='font-size:14px;text-align:center;margin-bottom:20px;'><strong>Warranty Period:</strong> $notes</div>" : '') . "
+              <div style='text-align:center;font-size:12px;margin-top:15px;line-height:1.5;'>
+                $companyName | $companyPhone<br>
+                $footerMsg<br>
+                Items are non-refundable after 7 days.<br><br>
+                <strong>Powered by JAAN Network</strong><br><br>
+                <a href='" . BASE_URL . "/pos/receipt.php?id=$saleId' target='_blank' style='color:#2563eb;text-decoration:none;'>View Full Receipt →</a>
               </div>
             </div>";
 
