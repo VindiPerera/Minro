@@ -37,7 +37,7 @@ $user = currentUser();
   <!-- Top Navbar -->
   <nav class="topbar d-flex align-items-center justify-content-between px-4">
     <div class="d-flex align-items-center gap-3">
-      <button class="btn btn-sm sidebar-toggle" id="sidebarToggle">
+      <button class="btn btn-sm sidebar-toggle d-lg-none" id="sidebarToggleMobile">
         <i class="fas fa-bars"></i>
       </button>
       <div class="topbar-title"><?= e($pageTitle) ?></div>
@@ -58,10 +58,11 @@ $user = currentUser();
         <ul class="dropdown-menu dropdown-menu-end">
           <li><a class="dropdown-item" href="<?= BASE_URL ?>/settings/index.php"><i class="fas fa-cog me-2"></i>Settings</a></li>
           <li><hr class="dropdown-divider"></li>
-          <li><a class="dropdown-item text-danger" href="<?= BASE_URL ?>/auth/logout.php"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+            <li><a class="dropdown-item text-danger" href="<?= BASE_URL ?>/auth/logout.php" data-confirm="Are you sure you want to logout?"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
         </ul>
       </div>
     </div>
   </nav>
   <!-- Page Content -->
   <div class="page-content p-4">
+
