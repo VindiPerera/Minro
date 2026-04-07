@@ -85,6 +85,11 @@ $user = currentUser();
       <span>Users</span>
     </a>
 
+    <a href="<?= BASE_URL ?>/suppliers/index.php" class="nav-item <?= isActive('/suppliers') ?>">
+      <i class="fas fa-truck nav-icon"></i>
+      <span>Suppliers</span>
+    </a>
+
     <a href="<?= BASE_URL ?>/settings/services.php" class="nav-item <?= isActive('/settings/services') ?>">
       <i class="fas fa-wrench nav-icon"></i>
       <span>Repair Services</span>
