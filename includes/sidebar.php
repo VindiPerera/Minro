@@ -10,12 +10,17 @@ function isActive(string $path): string {
 $user = currentUser();
 ?>
 <aside class="sidebar" id="sidebar">
-  <div class="sidebar-brand">
-    <div class="brand-icon"><i class="fas fa-mobile-alt"></i></div>
-    <div class="brand-text">
-      <div class="brand-name">Minro</div>
-      <div class="brand-sub">POS System</div>
+  <div class="sidebar-brand d-flex align-items-center justify-content-between w-100">
+    <div class="d-flex align-items-center brand-icon-wrapper" style="gap: 12px;">
+      <div class="brand-icon"><i class="fas fa-mobile-alt"></i></div>
+      <div class="brand-text">
+        <div class="brand-name">Minro</div>
+        <div class="brand-sub">POS System</div>
+      </div>
     </div>
+    <button class="btn btn-sm text-light sidebar-toggle-btn d-none d-lg-flex align-items-center justify-content-center" id="sidebarToggleBtn" title="Toggle Sidebar">
+      <i class="fas fa-bars"></i>
+    </button>
   </div>
 
   <nav class="sidebar-nav">
@@ -90,6 +95,11 @@ $user = currentUser();
       <span>Suppliers</span>
     </a>
 
+    <a href="<?= BASE_URL ?>/returns/index.php" class="nav-item <?= isActive('/returns') ?>">
+      <i class="fas fa-undo-alt nav-icon"></i>
+      <span>Returns to Supplier</span>
+    </a>
+
     <a href="<?= BASE_URL ?>/settings/services.php" class="nav-item <?= isActive('/settings/services') ?>">
       <i class="fas fa-wrench nav-icon"></i>
       <span>Repair Services</span>
@@ -102,16 +112,7 @@ $user = currentUser();
     <?php endif; ?>
   </nav>
 
-  <div class="sidebar-footer">
-    <div class="d-flex align-items-center gap-2">
-      <div class="user-avatar-sm"><?= strtoupper(substr($user['name'], 0, 1)) ?></div>
-      <div>
-        <div class="small fw-semibold text-light"><?= e($user['name']) ?></div>
-        <div class="small text-muted"><?= ucfirst($user['role']) ?></div>
-      </div>
-      <a href="<?= BASE_URL ?>/auth/logout.php" class="ms-auto text-muted" title="Logout">
-        <i class="fas fa-sign-out-alt"></i>
-      </a>
-    </div>
-  </div>
+
+
+
 </aside>

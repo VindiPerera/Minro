@@ -51,12 +51,17 @@ body {
   overflow: hidden;
 }
 .sidebar.collapsed { width: 70px; }
+.sidebar.collapsed .sidebar-brand { padding: 0 !important; justify-content: center !important; }
+.sidebar.collapsed .sidebar-toggle-btn { display: flex !important; justify-content: center; align-items: center; margin: 0 auto; font-size: 20px; }
+.sidebar-toggle-btn { color: var(--text-primary); background: transparent; border: none; padding: 4px 8px; border-radius: 6px; }
+.sidebar-toggle-btn:hover { background: rgba(255,255,255,0.1); }
 .sidebar.collapsed .brand-text,
-.sidebar.collapsed .nav-item span:not(.nav-icon),
-.sidebar.collapsed .nav-section-label,
-.sidebar.collapsed .nav-badge,
-.sidebar.collapsed .sidebar-footer .small,
-.sidebar.collapsed .user-avatar-sm + div { display: none; }
+  .sidebar.collapsed .brand-icon-wrapper,
+  .sidebar.collapsed .nav-item span:not(.nav-icon),
+  .sidebar.collapsed .nav-section-label,
+  .sidebar.collapsed .nav-badge,
+  .sidebar.collapsed .sidebar-footer .small,
+  .sidebar.collapsed .user-avatar-sm + div { display: none !important; }
 
 .sidebar-brand {
   display: flex; align-items: center; gap: 12px;
@@ -428,3 +433,9 @@ code { background: rgba(37,99,235,.15); color: #93c5fd; border-radius: 4px; padd
   .pos-layout { grid-template-columns: 1fr; grid-template-rows: 1fr auto; }
   .product-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
 }
+
+
+
+
+
+

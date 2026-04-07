@@ -31,8 +31,7 @@ $brands = $db->query("SELECT name FROM brands WHERE status=1 ORDER BY name")->fe
 $totalProducts  = $db->query("SELECT COUNT(*) FROM products WHERE status=1")->fetchColumn();
 $lowStockCount  = $db->query("SELECT COUNT(*) FROM products WHERE stock_quantity <= low_stock_threshold AND stock_quantity > 0 AND status=1")->fetchColumn();
 $outOfStockCount= $db->query("SELECT COUNT(*) FROM products WHERE stock_quantity <= 0 AND status=1")->fetchColumn();
-$inventoryValue = $db->query("SELECT COALESCE(SUM(cost_price * stock_quantity),0) FROM products WHERE status=1")->fetchColumn();
-
+$inventoryValue = $db->query("SELECT COALESCE(SUM(cost_price * stock_quantity),0) FROM products WHERE status=1")->fetchColumn();$totalReturnsToSupplier = $db->query("SELECT COALESCE(SUM(quantity),0) FROM supplier_return_items r JOIN supplier_returns sr ON r.return_id = sr.id WHERE sr.status != 'canceled'")->fetchColumn();
 require_once __DIR__ . '/../includes/header.php';
 ?>
 
@@ -54,17 +53,25 @@ require_once __DIR__ . '/../includes/header.php';
       <div class="stat-label">Total Products</div>
     </div>
   </div>
-  <div class="col-sm-6 col-md-3">
+  <div class="col-sm-6 col-md-2">
     <div class="stat-card text-center">
       <div class="stat-value" style="color:#fbbf24"><?= $lowStockCount ?></div>
       <div class="stat-label">Low Stock</div>
     </div>
   </div>
-  <div class="col-sm-6 col-md-3">
+  <div class="col-sm-6 col-md-2">
     <div class="stat-card text-center">
       <div class="stat-value" style="color:#f87171"><?= $outOfStockCount ?></div>
       <div class="stat-label">Out of Stock</div>
     </div>
+  </div>
+  <div class="col-sm-6 col-md-2">
+    <a href="<?= BASE_URL ?>/returns/index.php" style="text-decoration: none;">
+      <div class="stat-card text-center">
+        <div class="stat-value" style="color:#60a5fa"><?= $totalReturnsToSupplier ?></div>
+        <div class="stat-label text-white">Returns to Supplier</div>
+      </div>
+    </a>
   </div>
   <div class="col-sm-6 col-md-3">
     <div class="stat-card text-center">
@@ -222,3 +229,4 @@ $(document).ready(function() {
 </script>";
 require_once __DIR__ . '/../includes/footer.php';
 ?>
+

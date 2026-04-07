@@ -174,13 +174,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       </button>
     </form>
 
-    <div class="demo-creds mt-4">
-      <p class="mb-2 fw-semibold" style="color:#64748b">Demo Credentials</p>
-      <p class="mb-1">Admin: <code>admin@minro.lk</code> / <code>admin123</code></p>
-      <p class="mb-1">Cashier: <code>cashier@minro.lk</code> / <code>cashier123</code></p>
-      <p class="mb-0">Technician: <code>tech@minro.lk</code> / <code>tech123</code></p>
-    </div>
-
     <p class="text-center mt-4" style="color:#475569;font-size:12px">
       Not installed? <a href="../setup/install.php" style="color:#60a5fa">Run Installer →</a>
     </p>
@@ -197,3 +190,4 @@ function togglePass() {
 </script>
 </body>
 </html>
+

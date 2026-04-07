@@ -32,11 +32,15 @@ function updateDateTime() {
 updateDateTime(); setInterval(updateDateTime, 1000);
 
 // Sidebar toggle
-document.getElementById('sidebarToggle')?.addEventListener('click', function () {
+document.querySelectorAll('#sidebarToggle, #sidebarToggleMobile, #sidebarToggleBtn').forEach(function(btn) {
+  btn.addEventListener('click', function() {
     document.getElementById('sidebar').classList.toggle('collapsed');
     document.querySelector('.main-content').classList.toggle('expanded');
+  });
 });
 </script>
 <?php if (isset($extraScripts)) echo $extraScripts; ?>
 </body>
 </html>
+
+
