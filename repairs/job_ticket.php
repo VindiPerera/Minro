@@ -127,8 +127,10 @@ body { background: #f8fafc; font-family: Arial, sans-serif; color: #000; }
 <div class="sticker-wrap">
   <div class="sticker">
     <div class="sticker-company"><?= e($companyName) ?></div>
-    <svg class="stickerBarcode" data-value="<?= e($job['barcode'] ?: $job['job_number']) ?>"></svg>
-    <div class="sticker-job"><?= e($job['job_number']) ?></div>
+    <div style="text-align: center; margin-top: 1mm; margin-bottom: 0.5mm;">
+      <svg class="stickerBarcode" data-value="<?= e($job['barcode'] ?: $job['job_number']) ?>" style="display: inline-block; max-height: 14mm; max-width: 100%; object-fit: contain;"></svg>
+      <div style="font-size: 8pt; font-weight: 900; margin-top: 0.5mm; line-height: 1;"><?= e($job['job_number']) ?> &mdash; <?= money((float)$job['estimated_cost']) ?></div>
+    </div>
     <div class="sticker-device"><?= e($job['device_brand']) ?> <?= e($job['device_model']) ?></div>
     <div class="sticker-cust"><?= e($job['cname']) ?></div>
     <div class="sticker-meta"><?= date('d/m/Y', strtotime($job['created_at'])) ?></div>
@@ -156,6 +158,7 @@ body { background: #f8fafc; font-family: Arial, sans-serif; color: #000; }
 
   <div class="t-barcode-box">
     <svg id="ticketBarcode"></svg>
+    <div style="font-size: 9.5pt; font-weight: 700; margin-top: 1mm;"><?= money((float)$job['estimated_cost']) ?></div>
   </div>
 
   <hr class="t-divider">
@@ -216,7 +219,7 @@ window.onload = function() {
   <?php if ($sticker): ?>
   var el = document.querySelector('.stickerBarcode');
   if (el) {
-    try { JsBarcode(el, el.getAttribute('data-value'), { format:'CODE128', width:1.1, height:18, displayValue:false, margin:0, lineColor:'#000', background:'#fff' }); } catch(e) {}
+    try { JsBarcode(el, el.getAttribute('data-value'), { format:'CODE128', width:1.6, height:16, displayValue:false, margin:0, lineColor:'#000', background:'#fff' }); } catch(e) {}
   }
   <?php else: ?>
   try { JsBarcode('#ticketBarcode', '<?= e($job['job_number']) ?>', { format:'CODE128', width:1.5, height:40, displayValue:true, fontSize:9, margin:2, lineColor:'#000', background:'#fff' }); } catch(e) {}

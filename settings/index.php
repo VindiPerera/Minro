@@ -7,7 +7,7 @@ $db = getDB();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $fields = ['company_name','company_address','company_phone','company_email',
-               'currency','currency_symbol','tax_rate','receipt_footer','warranty_days',
+               'currency','currency_symbol','tax_rate','receipt_footer',
                'invoice_prefix','repair_prefix'];
     foreach ($fields as $key) {
         $val = trim($_POST[$key] ?? '');
@@ -103,10 +103,6 @@ require_once __DIR__ . '/../includes/header.php';
             <label class="form-label">Repair Job Prefix</label>
             <input type="text" name="repair_prefix" class="form-control" value="<?= s('repair_prefix','REP-') ?>">
           </div>
-        </div>
-        <div class="mb-3">
-          <label class="form-label">Warranty Days (default)</label>
-          <input type="number" name="warranty_days" class="form-control" min="0" value="<?= s('warranty_days','30') ?>">
         </div>
         <div class="mb-3">
           <label class="form-label">Receipt Footer Message</label>

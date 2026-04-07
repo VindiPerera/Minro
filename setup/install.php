@@ -41,12 +41,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         DROP TABLE IF EXISTS repair_jobs;
         DROP TABLE IF EXISTS sale_items;
         DROP TABLE IF EXISTS sales;
-        DROP TABLE IF EXISTS products;
-        DROP TABLE IF EXISTS repair_services;
-        DROP TABLE IF EXISTS categories;
-        DROP TABLE IF EXISTS customers;
-        DROP TABLE IF EXISTS users;
-        DROP TABLE IF EXISTS app_settings;
+          DROP TABLE IF EXISTS supplier_return_items;
+          DROP TABLE IF EXISTS supplier_returns;
+          DROP TABLE IF EXISTS suppliers;
+          DROP TABLE IF EXISTS stock_movements;
+          DROP TABLE IF EXISTS products;
+          DROP TABLE IF EXISTS phone_models;
+          DROP TABLE IF EXISTS brands;
+          DROP TABLE IF EXISTS repair_services;
+          DROP TABLE IF EXISTS categories;
+          DROP TABLE IF EXISTS customers;
+          DROP TABLE IF EXISTS users;
+          DROP TABLE IF EXISTS app_settings;
         ";
         foreach (explode(';', $sql) as $s) {
             if (trim($s)) $conn->exec(trim($s));
