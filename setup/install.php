@@ -249,7 +249,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
             FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
         ) ENGINE=InnoDB");
+          // SUPPLIERS
+          $conn->exec("CREATE TABLE IF NOT EXISTS suppliers (
+              id INT AUTO_INCREMENT PRIMARY KEY,
+              name VARCHAR(150) NOT NULL,
+              contact_person VARCHAR(100) DEFAULT NULL,
+              phone VARCHAR(50) DEFAULT NULL,
+              email VARCHAR(100) DEFAULT NULL,
+              address TEXT DEFAULT NULL,
+              status TINYINT DEFAULT 1,
+              created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+          ) ENGINE=InnoDB");
 
+          // SUPPLIER RETURNS
+          $conn->exec("CREATE TABLE IF NOT EXISTS supplier_returns (
+              id INT AUTO_INCREMENT PRIMARY KEY,
+              return_number VARCHAR(50) UNIQUE NOT NULL,
+              supplier_id INT NOT NULL,
+              return_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+              status ENUM('pending','completed','canceled') DEFAULT 'pending',
+              notes TEXT,
+              created_by INT,
+              created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+              FOREIGN KEY (supplier_id) REFERENCES suppliers(id) ON DELETE RESTRICT,
+              FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
+          ) ENGINE=InnoDB");
+
+          // SUPPLIER RETURN ITEMS
+          $conn->exec("CREATE TABLE IF NOT EXISTS supplier_return_items (
+              id INT AUTO_INCREMENT PRIMARY KEY,
+              return_id INT NOT NULL,
+              product_id INT NOT NULL,
+              quantity INT NOT NULL,
+              unit_cost DECIMAL(12,2) DEFAULT 0.00,
+              total_cost DECIMAL(12,2) DEFAULT 0.00,
+              reason VARCHAR(255) DEFAULT NULL,
+              FOREIGN KEY (return_id) REFERENCES supplier_returns(id) ON DELETE CASCADE,
+              FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE RESTRICT
+          ) ENGINE=InnoDB");
         // APP SETTINGS
         $conn->exec("CREATE TABLE app_settings (
             id INT AUTO_INCREMENT PRIMARY KEY,
