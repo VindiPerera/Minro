@@ -57,7 +57,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (empty($errors)) {
         $jobNumber = generateRepairJobNumber();
-        $barcode   = $jobNumber;
 
         $stmt = $db->prepare("INSERT INTO repair_jobs
             (job_number, customer_id, device_brand, device_model, device_imei, device_color, device_condition,
@@ -70,11 +69,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $data['issue_description'], $data['customer_complaint'],
             $data['estimated_cost'], $data['advance_payment'], $data['advance_payment_method'],
             'pending', $data['priority'], $data['assigned_to'], $_SESSION['user_id'],
-            $barcode,
+        null,
             $data['estimated_delivery'] ?: null,
             $data['internal_notes']
         ]);
         $jobId = (int)$db->lastInsertId();
+      ensureRepairJobBarcodes($jobId);
 
         // Add services
         foreach ($data['service_names'] as $idx => $svcName) {

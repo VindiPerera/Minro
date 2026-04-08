@@ -11,6 +11,24 @@ $priority = $_GET['priority'] ?? 'all';
 $search   = trim($_GET['search'] ?? '');
 $tech     = $_GET['tech']     ?? 'all';
 
+ensureRepairJobBarcodes();
+
+if ($search !== '') {
+  $scanValue = compactBarcodeValue($search);
+  if ($scanValue !== '') {
+    $scanStmt = $db->prepare("SELECT id FROM repair_jobs
+                  WHERE REPLACE(UPPER(TRIM(barcode)), ' ', '')=?
+                   OR REPLACE(UPPER(TRIM(job_number)), ' ', '')=?
+                  LIMIT 1");
+    $scanStmt->execute([$scanValue, $scanValue]);
+    $matchedJobId = (int)$scanStmt->fetchColumn();
+    if ($matchedJobId > 0) {
+      header('Location: ' . BASE_URL . '/repairs/view.php?id=' . $matchedJobId);
+      exit;
+    }
+  }
+}
+
 // Build WHERE
 $where = ['1=1'];
 $params = [];
@@ -74,10 +92,22 @@ require_once __DIR__ . '/../includes/header.php';
 <!-- Filters Bar -->
 <div class="card mb-4">
   <div class="card-body py-3">
+    <div class="row g-2 align-items-end mb-3">
+      <div class="col-md-8">
+        <label class="form-label small mb-1">Scan Repair Barcode</label>
+        <div class="input-group input-group-sm">
+          <span class="input-group-text"><i class="fas fa-barcode"></i></span>
+          <input type="text" id="repairScanInput" class="form-control" placeholder="Scan barcode to open repair job instantly..." autocomplete="off">
+          <button type="button" id="repairScanBtn" class="btn btn-primary"><i class="fas fa-search me-1"></i>Open</button>
+        </div>
+        <div id="repairScanStatus" class="small mt-1 text-muted">Ready to scan</div>
+      </div>
+    </div>
+
     <form method="GET" class="row g-2 align-items-end">
       <input type="hidden" name="status" value="<?= e($status) ?>">
       <div class="col-sm-4">
-        <input type="text" name="search" class="form-control form-control-sm" placeholder="Search job#, customer, device..." value="<?= e($search) ?>">
+        <input type="text" name="search" class="form-control form-control-sm" placeholder="Scan barcode or search job#, customer, device..." value="<?= e($search) ?>">
       </div>
       <div class="col-sm-2">
         <select name="priority" class="form-select form-select-sm">
@@ -165,5 +195,67 @@ require_once __DIR__ . '/../includes/header.php';
 </div>
 
 <?php
+$extraScripts = "
+<script>
+(function() {
+  const scanInput = document.getElementById('repairScanInput');
+  const scanBtn = document.getElementById('repairScanBtn');
+  const statusEl = document.getElementById('repairScanStatus');
+  if (!scanInput || !scanBtn || !statusEl) return;
+
+  let lookupBusy = false;
+
+  function setStatus(text, type) {
+    statusEl.textContent = text;
+    statusEl.classList.remove('text-muted', 'text-success', 'text-danger', 'text-warning');
+    statusEl.classList.add(type || 'text-muted');
+  }
+
+  function lookupRepairByScan() {
+    const raw = scanInput.value || '';
+    const code = raw.trim();
+    if (!code || lookupBusy) return;
+
+    lookupBusy = true;
+    setStatus('Looking up repair job...', 'text-warning');
+
+    $.getJSON('" . BASE_URL . "/api/repair_api.php', {
+      action: 'get_by_barcode',
+      barcode: code
+    }).done(function(res) {
+      if (res && res.success && res.view_url) {
+        setStatus('Match found. Opening job...', 'text-success');
+        window.location.href = res.view_url;
+        return;
+      }
+      setStatus('No repair job found for scanned code.', 'text-danger');
+    }).fail(function(xhr) {
+      const msg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : 'No repair job found for scanned code.';
+      setStatus(msg, 'text-danger');
+    }).always(function() {
+      lookupBusy = false;
+      scanInput.select();
+    });
+  }
+
+  scanBtn.addEventListener('click', function() {
+    lookupRepairByScan();
+  });
+
+  scanInput.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      lookupRepairByScan();
+    }
+  });
+
+  scanInput.addEventListener('focus', function() {
+    setStatus('Ready to scan', 'text-muted');
+  });
+
+  setTimeout(function() { scanInput.focus(); }, 100);
+})();
+</script>
+";
 require_once __DIR__ . '/../includes/footer.php';
 ?>

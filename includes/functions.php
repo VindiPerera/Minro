@@ -60,8 +60,8 @@ function generateInvoiceNumber(): string {
 function generateRepairJobNumber(): string {
     $prefix = setting('invoice_prefix_repair', 'REP');
     $db = getDB();
-    $count = (int)$db->query("SELECT COUNT(*) FROM repair_jobs")->fetchColumn();
-    return $prefix . '-' . date('Y') . '-' . str_pad($count + 1, 5, '0', STR_PAD_LEFT);
+    $lastId = (int)$db->query("SELECT COALESCE(MAX(id),0) FROM repair_jobs")->fetchColumn();
+    return $prefix . '-' . date('Y') . '-' . str_pad($lastId + 1, 5, '0', STR_PAD_LEFT);
 }
 
 function generateRepairInvoiceNumber(): string {
@@ -74,6 +74,39 @@ function generateProductCode(): string {
     $db = getDB();
     $count = (int)$db->query("SELECT COUNT(*) FROM products")->fetchColumn();
     return 'PRD-' . str_pad($count + 1, 4, '0', STR_PAD_LEFT);
+}
+
+function normalizeBarcodeValue(string $value): string {
+    $text = strtoupper(trim($value));
+    $text = preg_replace('/[\x00-\x1F\x7F]/u', '', $text);
+    if (str_starts_with($text, ']C1')) {
+        $text = trim(substr($text, 3));
+    }
+    return $text;
+}
+
+function compactBarcodeValue(string $value): string {
+    return preg_replace('/\s+/', '', normalizeBarcodeValue($value));
+}
+
+function generateRepairBarcodeFromId(int $jobId): string {
+    return str_pad((string)$jobId, 12, '0', STR_PAD_LEFT);
+}
+
+function ensureRepairJobBarcodes(?int $jobId = null): void {
+    $db = getDB();
+
+    if ($jobId !== null && $jobId > 0) {
+        $barcode = generateRepairBarcodeFromId($jobId);
+        $db->prepare("UPDATE repair_jobs SET barcode=? WHERE id=?")->execute([$barcode, $jobId]);
+        return;
+    }
+
+     $db->exec("UPDATE repair_jobs
+                    SET barcode = LPAD(id, 12, '0')
+               WHERE barcode IS NULL
+                  OR TRIM(barcode) = ''
+                        OR barcode <> LPAD(id, 12, '0')");
 }
 
 // -------------------------------------------------------

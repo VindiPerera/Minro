@@ -187,6 +187,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             internal_notes TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            UNIQUE KEY uq_repair_jobs_barcode (barcode),
             FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE SET NULL,
             FOREIGN KEY (assigned_to) REFERENCES users(id) ON DELETE SET NULL,
             FOREIGN KEY (cashier_id) REFERENCES users(id) ON DELETE SET NULL

@@ -8,6 +8,7 @@ $action = $_POST['action'] ?? $_GET['action'] ?? '';
 
 try {
     $db = getDB();
+    ensureRepairJobBarcodes();
 
     switch ($action) {
 
@@ -78,6 +79,28 @@ try {
             $partsTotal = $db->prepare("SELECT COALESCE(SUM(total),0) FROM repair_job_parts WHERE job_id=?");
             $partsTotal->execute([$jobId]);
             echo json_encode(['success'=>true,'services_total'=>$svcTotal->fetchColumn(),'parts_total'=>$partsTotal->fetchColumn()]);
+            break;
+
+        // ─── Get job by barcode (scanner support) ──────────────────────────
+        case 'get_by_barcode':
+            $raw = (string)($_GET['barcode'] ?? $_POST['barcode'] ?? '');
+            $scan = compactBarcodeValue($raw);
+            if ($scan === '') throw new Exception('Barcode is required');
+
+            $stmt = $db->prepare("SELECT id, job_number, barcode, status, customer_id, device_brand, device_model, created_at
+                                  FROM repair_jobs
+                                  WHERE REPLACE(UPPER(TRIM(barcode)), ' ', '')=?
+                                     OR REPLACE(UPPER(TRIM(job_number)), ' ', '')=?
+                                  LIMIT 1");
+            $stmt->execute([$scan, $scan]);
+            $job = $stmt->fetch();
+            if (!$job) throw new Exception('Repair job not found for scanned barcode');
+
+            echo json_encode([
+                'success' => true,
+                'job' => $job,
+                'view_url' => BASE_URL . '/repairs/view.php?id=' . (int)$job['id']
+            ]);
             break;
 
         default:
