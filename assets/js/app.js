@@ -50,6 +50,7 @@ $(document).ready(function () {
     e.preventDefault();
     const msg  = $(this).data('confirm') || 'Are you sure?';
     const href = $(this).attr('href') || $(this).data('href');
+    const form = $(this).closest('form')[0];
     const isLightTheme = document.body.classList.contains('light-theme') || document.documentElement.classList.contains('light-theme');
     Swal.fire({
       title: 'Confirm Action',
@@ -61,7 +62,12 @@ $(document).ready(function () {
       confirmButtonText: 'Yes, proceed!',
       background: isLightTheme ? '#ffffff' : '#1e293b',
       color: isLightTheme ? '#1e293b' : '#e2e8f0'
-    }).then(r => { if (r.isConfirmed && href) window.location.href = href; });
+    }).then(r => { 
+      if (r.isConfirmed) {
+        if (form) form.submit();
+        else if (href) window.location.href = href;
+      }
+    });
   });
 
   // -------------------------------------------------------
