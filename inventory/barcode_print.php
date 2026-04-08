@@ -80,30 +80,53 @@ $isPrint     = isset($_GET['print']);
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    gap: 3px;
+    gap: 1px;
+  }
+  .barcode-label .label-shop {
+    font-size: 7px;
+    font-weight: 900;
+    color: #000;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    line-height: 1;
+    border-bottom: 1px solid #000;
+    padding-bottom: 1px;
+    width: 100%;
   }
   .barcode-label .label-name {
-    font-size: 11px;
-    font-weight: 900;
+    font-size: 8px;
+    font-weight: 700;
     color: #111;
     line-height: 1;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     width: 100%;
+    text-transform: uppercase;
   }
-  .barcode-label .label-meta {
-    display: none;
+  .barcode-label .label-brand-model {
+    font-size: 6px;
+    font-weight: 600;
+    color: #333;
+    text-transform: uppercase;
+    line-height: 1;
+    width: 100%;
   }
   .barcode-label svg { 
     max-width: 100%; 
-    max-height: 50px; 
+    max-height: 34px; 
     display: block; 
     margin: 0 auto;
     object-fit: contain; 
   }
+  .barcode-label .label-code {
+    font-size: 7px;
+    font-weight: 900;
+    color: #000;
+    line-height: 1;
+  }
   .barcode-label .label-price {
-    font-size: 12px;
+    font-size: 9px;
     font-weight: 900;
     color: #000;
     line-height: 1;
@@ -135,7 +158,7 @@ $isPrint     = isset($_GET['print']);
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      gap: 1.5mm;
+      gap: 0.5mm;
       box-shadow: none;
       border: none;
       border-radius: 0;
@@ -148,13 +171,16 @@ $isPrint     = isset($_GET['print']);
       page-break-after: always;
       break-after: page;
     }
-    .barcode-label .label-name  { font-size: 8pt !important; font-weight: 900 !important; line-height: 1 !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-shrink: 0; width: 100%; text-align: center; }
-    .barcode-label .label-price { font-size: 9pt !important; font-weight: 900 !important; line-height: 1 !important; flex-shrink: 0; margin-top: 0.5mm !important; }
+    .barcode-label .label-shop  { font-size: 5.5pt !important; font-weight: 900 !important; line-height: 1 !important; letter-spacing: 0.5px; text-transform: uppercase; border-bottom: 0.5pt solid #000; padding-bottom: 0.3mm; flex-shrink: 0; width: 100%; text-align: center; }
+    .barcode-label .label-name  { font-size: 6.5pt !important; font-weight: 700 !important; line-height: 1 !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-shrink: 0; width: 100%; text-align: center; text-transform: uppercase; }
+    .barcode-label .label-brand-model { font-size: 5pt !important; font-weight: 600 !important; line-height: 1 !important; flex-shrink: 0; width: 100%; text-align: center; text-transform: uppercase; }
+    .barcode-label .label-code  { font-size: 6pt !important; font-weight: 900 !important; line-height: 1 !important; flex-shrink: 0; }
+    .barcode-label .label-price { font-size: 7pt !important; font-weight: 900 !important; line-height: 1 !important; flex-shrink: 0; }
     .barcode-label svg {
       display: block !important;
       margin: 0 auto !important;
       max-width: 100% !important;
-      height: 14mm !important;
+      height: 9mm !important;
       flex-shrink: 0;
       object-fit: fill !important;
     }
@@ -196,11 +222,13 @@ $isPrint     = isset($_GET['print']);
 <div class="label-grid" id="labelGrid">
   <?php for ($i = 0; $i < $qty; $i++): ?>
   <div class="barcode-label">
+    <div class="label-shop"><?= e($companyName) ?></div>
     <div class="label-name" title="<?= e($product['name']) ?>"><?= e($product['name']) ?></div>
     <?php if (!empty($product['brand']) || !empty($product['model'])): ?>
-    <div class="label-meta"><?= $product['brand'] ? e($product['brand']) : '' ?><?= ($product['brand'] && $product['model']) ? ' &middot; ' : '' ?><?= $product['model'] ? e($product['model']) : '' ?></div>
+    <div class="label-brand-model"><?= $product['brand'] ? e($product['brand']) : '' ?><?= ($product['brand'] && $product['model']) ? ' ' : '' ?><?= $product['model'] ? e($product['model']) : '' ?></div>
     <?php endif; ?>
     <svg class="barcode-svg-<?= $i ?>"></svg>
+    <div class="label-code"><?= e($barcodeValue) ?></div>
     <div class="label-price"><?= money((float)$product['selling_price']) ?></div>
   </div>
   <?php endfor; ?>
