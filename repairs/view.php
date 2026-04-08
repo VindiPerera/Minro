@@ -10,6 +10,8 @@ $job = $db->prepare("SELECT r.*, COALESCE(c.name,'Walk-in') as cname, COALESCE(c
 $job->execute([$id]);
 $job = $job->fetch();
 if (!$job) { header('Location: ' . BASE_URL . '/repairs/index.php'); exit; }
+$jobBarcodeValue = trim((string)($job['barcode'] ?: $job['job_number']));
+$jobBarcodeValue = preg_replace('/[\x00-\x1F\x7F]/u', '', $jobBarcodeValue);
 
 $services    = $db->prepare("SELECT * FROM repair_job_services WHERE job_id=?");
 $services->execute([$id]);
@@ -154,8 +156,8 @@ $showTicket = isset($_GET['print_ticket']);
     <p><?= e($job['device_brand']) ?> <?= e($job['device_model']) ?> — <?= e($job['cname']) ?></p>
   </div>
   <div class="d-flex flex-wrap gap-2">
-    <a href="<?= BASE_URL ?>/repairs/job_ticket.php?id=<?= $id ?>" class="btn btn-outline-secondary" target="_blank"><i class="fas fa-print me-2"></i>Print Ticket</a>
-    <a href="<?= BASE_URL ?>/repairs/job_ticket.php?id=<?= $id ?>&sticker=1" class="btn btn-outline-info" target="_blank"><i class="fas fa-tag me-2"></i>Print Sticker</a>
+    <a href="<?= BASE_URL ?>/repairs/job_ticket.php?id=<?= $id ?>&print=1" class="btn btn-outline-secondary" target="_blank"><i class="fas fa-print me-2"></i>Print Ticket</a>
+    <a href="<?= BASE_URL ?>/repairs/job_ticket.php?id=<?= $id ?>&sticker=1&print=1" class="btn btn-outline-info" target="_blank"><i class="fas fa-tag me-2"></i>Print Sticker</a>
     <?php if ($job['status'] === 'completed' && !$invoice): ?>
     <a href="<?= BASE_URL ?>/repairs/invoice.php?id=<?= $id ?>" class="btn btn-success"><i class="fas fa-file-invoice me-2"></i>Generate Invoice</a>
     <?php elseif ($invoice): ?>
@@ -412,8 +414,8 @@ $showTicket = isset($_GET['print_ticket']);
         <svg id="jobBarcode"></svg>
         <div class="mt-2 small text-muted"><?= e($job['job_number']) ?></div>
         <div class="d-flex gap-2 mt-3">
-          <a href="<?= BASE_URL ?>/repairs/job_ticket.php?id=<?= $id ?>" target="_blank" class="btn btn-sm btn-outline-secondary flex-grow-1"><i class="fas fa-print me-1"></i>Job Ticket</a>
-          <a href="<?= BASE_URL ?>/repairs/job_ticket.php?id=<?= $id ?>&sticker=1" target="_blank" class="btn btn-sm btn-outline-info flex-grow-1"><i class="fas fa-tag me-1"></i>Sticker</a>
+          <a href="<?= BASE_URL ?>/repairs/job_ticket.php?id=<?= $id ?>&print=1" target="_blank" class="btn btn-sm btn-outline-secondary flex-grow-1"><i class="fas fa-print me-1"></i>Job Ticket</a>
+          <a href="<?= BASE_URL ?>/repairs/job_ticket.php?id=<?= $id ?>&sticker=1&print=1" target="_blank" class="btn btn-sm btn-outline-info flex-grow-1"><i class="fas fa-tag me-1"></i>Sticker</a>
         </div>
       </div>
     </div>
@@ -502,7 +504,7 @@ $showTicket = isset($_GET['print_ticket']);
 <?php
 $extraScripts = "
 <script>
-JsBarcode('#jobBarcode', '" . e($job['job_number']) . "', { format:'CODE128', width:1.8, height:50, displayValue:true, fontSize:11, lineColor:'#e2e8f0', background:'transparent' });
+JsBarcode('#jobBarcode', " . json_encode($jobBarcodeValue) . ", { format:'CODE128', width:2, height:50, displayValue:true, fontSize:11, margin:4, lineColor:'#000', background:'#fff' });
 
 // Part modal
 $('#partSelect').on('change', function() {
@@ -531,7 +533,7 @@ $(document).ready(function() {
   $('#partSelect').select2({ theme:'bootstrap-5', dropdownParent: $('#addPartModal') });
   $('select.select2:not(#partSelect)').select2({ theme:'bootstrap-5' });
 });
-" . ($showTicket ? "$(document).ready(function() { setTimeout(() => { window.open('" . BASE_URL . "/repairs/job_ticket.php?id=$id', '_blank'); }, 800); });" : "") . "
+" . ($showTicket ? "$(document).ready(function() { setTimeout(() => { window.open('" . BASE_URL . "/repairs/job_ticket.php?id=$id&print=1', '_blank'); }, 800); });" : "") . "
 </script>
 ";
 require_once __DIR__ . '/../includes/footer.php';

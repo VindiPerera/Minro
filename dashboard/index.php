@@ -141,7 +141,7 @@ require_once __DIR__ . '/../includes/header.php';
         <?php else: ?>
         <div class="list-group list-group-flush">
           <?php foreach ($lowStock as $p): ?>
-          <a href="<?= BASE_URL ?>/inventory/index.php" class="list-group-item list-group-item-action px-4 py-3" style="background:transparent;border-color:#334155;color:#e2e8f0">
+          <a href="<?= BASE_URL ?>/inventory/index.php" class="list-group-item list-group-item-action px-4 py-3" style="background:transparent;border-color:var(--border);color:var(--text-primary)">
             <div class="d-flex justify-content-between">
               <div>
                 <div class="fw-semibold small"><?= e($p['name']) ?></div>
@@ -152,7 +152,7 @@ require_once __DIR__ . '/../includes/header.php';
           </a>
           <?php endforeach; ?>
         </div>
-        <div class="p-3 border-top" style="border-color:#334155!important">
+        <div class="p-3 border-top" style="border-color:var(--border)!important">
           <a href="<?= BASE_URL ?>/inventory/index.php?filter=low_stock" class="btn btn-sm btn-outline-warning w-100">View All Low Stock</a>
         </div>
         <?php endif; ?>
@@ -208,7 +208,7 @@ require_once __DIR__ . '/../includes/header.php';
               <div class="fw-semibold small text-info"><?= e($j['job_number']) ?></div>
               <?= jobStatusBadge($j['status']) ?>
             </div>
-            <div class="small text-light"><?= e($j['device_brand']) ?> <?= e($j['device_model']) ?></div>
+            <div class="small" style="color:var(--text-primary)"><?= e($j['device_brand']) ?> <?= e($j['device_model']) ?></div>
             <div class="d-flex justify-content-between mt-1">
               <span style="font-size:11px;color:#64748b"><?= e($j['customer_name']) ?></span>
               <?= priorityBadge($j['priority']) ?>
@@ -253,8 +253,8 @@ new Chart(ctx, {
       tooltip: { callbacks: { label: ctx => ' Rs. ' + ctx.raw.toLocaleString() } }
     },
     scales: {
-      x: { grid: { color: '#334155' }, ticks: { color: '#64748b' } },
-      y: { grid: { color: '#334155' }, ticks: { color: '#64748b', callback: v => 'Rs. ' + v.toLocaleString() } }
+      x: { grid: { color: (document.body.classList.contains('light-theme') || document.documentElement.classList.contains('light-theme')) ? '#e2e8f0' : '#334155' }, ticks: { color: '#64748b' } },
+      y: { grid: { color: (document.body.classList.contains('light-theme') || document.documentElement.classList.contains('light-theme')) ? '#e2e8f0' : '#334155' }, ticks: { color: '#64748b', callback: v => 'Rs. ' + v.toLocaleString() } }
     }
   }
 });

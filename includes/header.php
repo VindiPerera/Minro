@@ -29,6 +29,15 @@ $user = currentUser();
 <link href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" rel="stylesheet">
 <!-- Custom CSS -->
 <link href="<?= BASE_URL ?>/assets/css/style.css" rel="stylesheet">
+<!-- Theme Script (runs before DOM render to prevent flash) -->
+<script>
+(function() {
+  const savedTheme = localStorage.getItem('theme') || 'dark';
+  if (savedTheme === 'light') {
+    document.documentElement.classList.add('light-theme');
+  }
+})();
+</script>
 </head>
 <body>
 <div class="wrapper">
@@ -47,6 +56,10 @@ $user = currentUser();
         <i class="fas fa-calendar-alt me-1 text-muted"></i>
         <span id="liveDateTime"></span>
       </div>
+      <button class="theme-toggle-btn" id="themeToggleBtn" title="Toggle Theme">
+        <i class="fas fa-sun"></i>
+        <span class="d-none d-sm-inline">Light</span>
+      </button>
       <div class="dropdown">
         <button class="btn btn-sm dropdown-toggle user-btn" data-bs-toggle="dropdown">
           <div class="user-avatar"><?= strtoupper(substr($user['name'], 0, 1)) ?></div>

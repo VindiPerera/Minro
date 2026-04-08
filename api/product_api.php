@@ -77,8 +77,8 @@ try {
                 $stmt = $db->prepare("SELECT * FROM products WHERE id=? AND status=1");
                 $stmt->execute([$id]);
             } elseif ($barcode) {
-                $stmt = $db->prepare("SELECT * FROM products WHERE code=? AND status=1");
-                $stmt->execute([$barcode]);
+                $stmt = $db->prepare("SELECT * FROM products WHERE (barcode=? OR code=?) AND status=1 LIMIT 1");
+                $stmt->execute([$barcode, $barcode]);
             } else {
                 throw new Exception('No product identifier provided');
             }

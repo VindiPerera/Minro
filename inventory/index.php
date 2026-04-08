@@ -190,7 +190,7 @@ require_once __DIR__ . '/../includes/header.php';
                 <a href="<?= BASE_URL ?>/inventory/manage.php?id=<?= $p['id'] ?>" class="btn btn-sm btn-outline-primary" title="Edit"><i class="fas fa-edit"></i></a>
                 <a href="<?= BASE_URL ?>/inventory/stock_in.php?product_id=<?= $p['id'] ?>" class="btn btn-sm btn-outline-success" title="Add Stock"><i class="fas fa-plus"></i></a>
                 <?php if (!empty($p['barcode'])): ?>
-                <a href="<?= BASE_URL ?>/inventory/barcode_print.php?id=<?= $p['id'] ?>" class="btn btn-sm btn-outline-warning" title="Print Barcode" target="_blank"><i class="fas fa-barcode"></i></a>
+                <a href="<?= BASE_URL ?>/inventory/barcode_print.php?id=<?= $p['id'] ?>&print=1" class="btn btn-sm btn-outline-warning" title="Print Barcode" target="_blank"><i class="fas fa-barcode"></i></a>
                 <?php endif; ?>
                 <?php if (isAdmin()): ?>
                 <a href="?action=delete&id=<?= $p['id'] ?>" class="btn btn-sm btn-outline-danger" data-confirm="Delete this product? This cannot be undone." title="Delete"><i class="fas fa-trash"></i></a>

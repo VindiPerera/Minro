@@ -50,16 +50,17 @@ $(document).ready(function () {
     e.preventDefault();
     const msg  = $(this).data('confirm') || 'Are you sure?';
     const href = $(this).attr('href') || $(this).data('href');
+    const isLightTheme = document.body.classList.contains('light-theme') || document.documentElement.classList.contains('light-theme');
     Swal.fire({
       title: 'Confirm Action',
       text: msg,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#dc2626',
-      cancelButtonColor: '#334155',
+      cancelButtonColor: isLightTheme ? '#cbd5e1' : '#334155',
       confirmButtonText: 'Yes, proceed!',
-      background: '#1e293b',
-      color: '#e2e8f0'
+      background: isLightTheme ? '#ffffff' : '#1e293b',
+      color: isLightTheme ? '#1e293b' : '#e2e8f0'
     }).then(r => { if (r.isConfirmed && href) window.location.href = href; });
   });
 
@@ -68,14 +69,15 @@ $(document).ready(function () {
   // -------------------------------------------------------
   window.toast = function (msg, type = 'success') {
     const colors = { success: '#16a34a', error: '#dc2626', warning: '#d97706', info: '#0891b2' };
+    const isLightTheme = document.body.classList.contains('light-theme') || document.documentElement.classList.contains('light-theme');
     Swal.mixin({
       toast: true,
       position: 'top-end',
       showConfirmButton: false,
       timer: 3000,
       timerProgressBar: true,
-      background: '#1e293b',
-      color: '#e2e8f0'
+      background: isLightTheme ? '#ffffff' : '#1e293b',
+      color: isLightTheme ? '#1e293b' : '#e2e8f0'
     }).fire({ icon: type, title: msg });
   };
 
@@ -178,9 +180,57 @@ $(document).ready(function () {
   // -------------------------------------------------------
   // Auto-uppercase barcode inputs
   // -------------------------------------------------------
+  // Barcode input uppercase
+  // -------------------------------------------------------
   $(document).on('input', '.barcode-input', function () {
     $(this).val($(this).val().toUpperCase());
   });
+
+  // -------------------------------------------------------
+  // Theme Toggle (Dark/Light Mode)
+  // -------------------------------------------------------
+  function initThemeToggle() {
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    if (savedTheme === 'light') {
+      document.documentElement.classList.add('light-theme');
+      document.body.classList.add('light-theme');
+      updateThemeButton('dark');
+    } else {
+      document.documentElement.classList.remove('light-theme');
+      document.body.classList.remove('light-theme');
+      updateThemeButton('light');
+    }
+  }
+
+  function updateThemeButton(nextTheme) {
+    const btn = document.getElementById('themeToggleBtn');
+    if (btn) {
+      if (nextTheme === 'dark') {
+        btn.innerHTML = '<i class="fas fa-moon"></i><span class="d-none d-sm-inline">Dark</span>';
+      } else {
+        btn.innerHTML = '<i class="fas fa-sun"></i><span class="d-none d-sm-inline">Light</span>';
+      }
+    }
+  }
+
+  document.getElementById('themeToggleBtn')?.addEventListener('click', function () {
+    const currentTheme = document.body.classList.contains('light-theme') ? 'light' : 'dark';
+    const nextTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    
+    if (nextTheme === 'light') {
+      document.documentElement.classList.add('light-theme');
+      document.body.classList.add('light-theme');
+    } else {
+      document.documentElement.classList.remove('light-theme');
+      document.body.classList.remove('light-theme');
+    }
+    
+    localStorage.setItem('theme', nextTheme);
+    updateThemeButton(currentTheme);
+  });
+
+  // Initialize theme on page load
+  initThemeToggle();
 
   // -------------------------------------------------------
   // Auto-dismiss alerts after 5s

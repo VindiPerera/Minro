@@ -10,6 +10,8 @@ $job = $db->prepare("SELECT r.*, COALESCE(c.name,'Walk-in') as cname, COALESCE(c
 $job->execute([$id]);
 $job = $job->fetch();
 if (!$job) { header('Location: ' . BASE_URL . '/repairs/index.php'); exit; }
+$jobBarcodeValue = trim((string)($job['barcode'] ?: $job['job_number']));
+$jobBarcodeValue = preg_replace('/[\x00-\x1F\x7F]/u', '', $jobBarcodeValue);
 
 $services = $db->prepare("SELECT * FROM repair_job_services WHERE job_id=?");
 $services->execute([$id]);
@@ -84,6 +86,16 @@ $isPrint = isset($_GET['print']);
 <style>
   body { background: #0f172a; color: #e2e8f0; font-family: 'Segoe UI', sans-serif; }
   .no-print { padding: 16px 20px; background: #1e293b; border-bottom: 1px solid #334155; display: flex; gap: 10px; align-items: center; }
+  .print-hint { font-size: 11px; color: #94a3b8; margin-left: 8px; }
+  .quick-print-fab {
+    position: fixed;
+    right: 18px;
+    bottom: 18px;
+    z-index: 9999;
+    border-radius: 999px;
+    padding: 10px 14px;
+    box-shadow: 0 8px 20px rgba(0,0,0,.35);
+  }
 
   .invoice-wrap { max-width: 700px; margin: 30px auto; background: white; color: #111; border-radius: 12px; overflow: hidden; }
   .inv-header { background: #1e293b; color: white; padding: 24px 32px; display: flex; justify-content: space-between; align-items: flex-start; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
@@ -114,6 +126,7 @@ $isPrint = isset($_GET['print']);
     body { background: white !important; color: #000 !important; font-family: 'Courier New', monospace !important; font-size: 11px !important; }
 
     .no-print, .payment-form-wrap { display: none !important; }
+    .quick-print-fab { display: none !important; }
 
     .invoice-wrap {
       max-width: 80mm !important;
@@ -176,8 +189,13 @@ $isPrint = isset($_GET['print']);
 <body>
 <div class="no-print">
   <a href="<?= BASE_URL ?>/repairs/view.php?id=<?= $id ?>" class="btn btn-sm btn-secondary"><i class="fas fa-arrow-left me-1"></i>Back to Job</a>
-  <button onclick="window.print()" class="btn btn-sm btn-primary"><i class="fas fa-print me-1"></i>Print Invoice</button>
+  <button onclick="triggerPrintNow(true); return false;" class="btn btn-sm btn-primary"><i class="fas fa-print me-1"></i>Print Invoice</button>
+  <span class="print-hint">If dialog shows Save, switch Destination to your printer.</span>
 </div>
+
+<button type="button" class="btn btn-primary quick-print-fab" onclick="triggerPrintNow(true); return false;">
+  <i class="fas fa-print me-1"></i>Print Now
+</button>
 
 <?php if (!$invoice): ?>
 <!-- Payment Form -->
@@ -367,7 +385,54 @@ $isPrint = isset($_GET['print']);
 
 <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
 <script>
-JsBarcode('#invBarcode', '<?= e($job['barcode'] ?: $job['job_number']) ?>', { format:'CODE128', width:2, height:50, displayValue:true, fontSize:11, lineColor:'#334155', background:'#f8f9fa' });
+const shouldAutoPrint = <?= $isPrint ? 'true' : 'false' ?>;
+let printTriggered = false;
+
+function getAdaptiveBarcodeOptions(value) {
+  const len = String(value || '').trim().length;
+  let width = 1.9;
+  if (len > 10) width = 1.7;
+  if (len > 14) width = 1.5;
+  if (len > 18) width = 1.35;
+
+  return {
+    format: 'CODE128',
+    width: width,
+    height: 50,
+    displayValue: true,
+    fontSize: 11,
+    margin: 3,
+    lineColor: '#000',
+    background: '#fff'
+  };
+}
+
+function triggerPrintNow(fromUserClick = false) {
+  if (printTriggered) return;
+  printTriggered = true;
+  try { window.focus(); } catch (e) {}
+
+  if (fromUserClick) {
+    try {
+      window.print();
+      return;
+    } catch (e) {}
+  }
+
+  setTimeout(function () {
+    try {
+      window.print();
+    } catch (e) {
+      try { document.execCommand('print', false, null); } catch (ignored) {}
+    }
+  }, 100);
+}
+
+window.addEventListener('afterprint', function () {
+  printTriggered = false;
+});
+
+JsBarcode('#invBarcode', <?= json_encode($jobBarcodeValue) ?>, getAdaptiveBarcodeOptions(<?= json_encode($jobBarcodeValue) ?>));
 
 // Form calculations
 const svc = <?= $serviceTotal ?>, parts = <?= $partsTotal ?>, adv = <?= (float)$job['advance_payment'] ?>;
@@ -386,7 +451,14 @@ document.getElementById('invDiscount')?.addEventListener('input', calcInv);
 document.getElementById('invPaid')?.addEventListener('focus', function() { this.dataset.touched = '1'; });
 calcInv();
 
-<?php if ($isPrint): ?>window.onload = function() { setTimeout(() => window.print(), 500); };<?php endif; ?>
+window.addEventListener('load', function () {
+  if (shouldAutoPrint) {
+    requestAnimationFrame(function () {
+      setTimeout(function () { triggerPrintNow(false); }, 220);
+    });
+    setTimeout(function () { triggerPrintNow(false); }, 1300);
+  }
+});
 </script>
 </body>
 </html>

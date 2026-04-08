@@ -9,6 +9,7 @@ requireAuth();
 
 $id      = (int)($_GET['id'] ?? 0);
 $sticker = isset($_GET['sticker']);
+$isPrint = isset($_GET['print']);
 if (!$id) die('Invalid job ID');
 
 $db = getDB();
@@ -16,6 +17,8 @@ $job = $db->prepare("SELECT r.*, COALESCE(c.name,'Walk-in') as cname, COALESCE(c
 $job->execute([$id]);
 $job = $job->fetch();
 if (!$job) die('Job not found');
+$jobBarcodeValue = trim((string)($job['barcode'] ?: $job['job_number']));
+$jobBarcodeValue = preg_replace('/[\x00-\x1F\x7F]/u', '', $jobBarcodeValue);
 
 $services = $db->prepare("SELECT * FROM repair_job_services WHERE job_id=?");
 $services->execute([$id]);
@@ -42,12 +45,22 @@ $serviceTotal = array_sum(array_column($services, 'price'));
 @page { size: 50mm 25mm; margin: 0mm; }
 html, body { width: 50mm; margin: 0; padding: 0; }
 <?php else: ?>
-@page { size: 80mm auto; margin: 3mm 4mm; }
+@page { size: 80mm auto; margin: 2.5mm 3mm; }
 <?php endif; ?>
 
 * { box-sizing: border-box; }
 body { background: #f8fafc; font-family: Arial, sans-serif; color: #000; }
 .no-print { background: #1e293b; padding: 12px 20px; display: flex; gap: 10px; align-items: center; }
+.print-hint { font-size: 11px; color: #94a3b8; margin-left: 8px; }
+.quick-print-fab {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 9999;
+  border-radius: 999px;
+  padding: 10px 14px;
+  box-shadow: 0 8px 20px rgba(0,0,0,.25);
+}
 
 /* ── STICKER (direct thermal label) ───────────────────── */
 .sticker-wrap { display: flex; justify-content: center; padding: 30px; }
@@ -60,7 +73,7 @@ body { background: #f8fafc; font-family: Arial, sans-serif; color: #000; }
 .sticker svg     { max-width: 100%; display: block; }
 
 /* ── TICKET (80mm direct thermal) ─────────────────────── */
-.ticket { width: 72mm; margin: 20px auto; background: #fff; padding: 2mm; font-size: 8.5pt; line-height: 1.4; }
+.ticket { width: 100%; max-width: 72mm; margin: 20px auto; background: #fff; padding: 2mm; font-size: 8.5pt; line-height: 1.4; overflow: hidden; }
 .ticket-co-logo  { text-align: center; margin-bottom: 1mm; }
 .ticket-co-name  { font-size: 13pt; font-weight: 900; text-align: center; letter-spacing: 1px; }
 .ticket-co-sub   { font-size: 7.5pt; text-align: center; margin-bottom: 0.5mm; }
@@ -77,6 +90,7 @@ body { background: #f8fafc; font-family: Arial, sans-serif; color: #000; }
 .t-svc-table .r  { text-align: right; }
 .t-total td      { border-top: 1px solid #000; font-weight: 700; padding-top: 1.5mm; }
 .t-barcode-box   { text-align: center; margin: 2mm 0; }
+.t-barcode-box svg { display: block; width: 100%; max-width: 64mm; height: auto; margin: 0 auto; }
 .t-sig           { display: flex; justify-content: space-between; margin: 5mm 0 2mm; }
 .t-sig-item      { flex: 1; text-align: center; }
 .t-sig-line      { border-top: 1px solid #000; margin: 0 4mm 1.5mm; }
@@ -86,11 +100,10 @@ body { background: #f8fafc; font-family: Arial, sans-serif; color: #000; }
 @media print {
   body { background: white; }
   .no-print { display: none; }
-  <?php if ($sticker): ?>
-  .no-print { display: none !important; }
-  .sticker-wrap { padding: 0; display: block; }
-  .ticket-co-logo { display: none !important; }
-  .sticker {
+  .quick-print-fab { display: none !important; }
+  body.is-sticker .sticker-wrap { padding: 0; display: block; }
+  body.is-sticker .ticket-co-logo { display: none !important; }
+  body.is-sticker .sticker {
     border: none;
     width: 50mm;
     height: 25mm;
@@ -100,25 +113,33 @@ body { background: #f8fafc; font-family: Arial, sans-serif; color: #000; }
     flex-direction: column;
     justify-content: space-between;
   }
-  .sticker-company, .sticker-job, .sticker-device, .sticker-cust, .sticker-meta { line-height: 1 !important; }
-  .sticker svg { max-width: 100% !important; display: block !important; }
-  <?php else: ?>
-  .ticket { width: 100%; margin: 0; padding: 0; }
-  <?php endif; ?>
+  body.is-sticker .sticker-company,
+  body.is-sticker .sticker-job,
+  body.is-sticker .sticker-device,
+  body.is-sticker .sticker-cust,
+  body.is-sticker .sticker-meta { line-height: 1 !important; }
+  body.is-sticker .sticker svg { max-width: 100% !important; display: block !important; }
+  body.is-ticket .ticket { width: 100%; max-width: 72mm; margin: 0 auto; padding: 0; overflow: hidden; }
+  body.is-ticket .t-barcode-box svg { max-width: 64mm !important; }
 }
 </style>
 </head>
-<body>
+<body class="<?= $sticker ? 'is-sticker' : 'is-ticket' ?>">
 
 <div class="no-print">
   <a href="<?= BASE_URL ?>/repairs/view.php?id=<?= $id ?>" class="btn btn-sm btn-secondary"><i class="fas fa-arrow-left me-1"></i>Back</a>
   <?php if (!$sticker): ?>
-  <a href="?id=<?= $id ?>&sticker=1" class="btn btn-sm btn-outline-info"><i class="fas fa-tag me-1"></i>Print Sticker</a>
+  <a href="?id=<?= $id ?>&sticker=1<?= $isPrint ? '&print=1' : '' ?>" class="btn btn-sm btn-outline-info"><i class="fas fa-tag me-1"></i>Print Sticker</a>
   <?php else: ?>
-  <a href="?id=<?= $id ?>" class="btn btn-sm btn-outline-secondary"><i class="fas fa-file me-1"></i>Print Ticket</a>
+  <a href="?id=<?= $id ?><?= $isPrint ? '&print=1' : '' ?>" class="btn btn-sm btn-outline-secondary"><i class="fas fa-file me-1"></i>Print Ticket</a>
   <?php endif; ?>
-  <button onclick="window.print()" class="btn btn-sm btn-primary"><i class="fas fa-print me-1"></i>Print</button>
+  <button onclick="triggerPrintNow(true); return false;" class="btn btn-sm btn-primary"><i class="fas fa-print me-1"></i>Print</button>
+  <span class="print-hint">If dialog shows Save, choose your printer in Destination.</span>
 </div>
+
+<button type="button" class="btn btn-primary quick-print-fab" onclick="triggerPrintNow(true); return false;">
+  <i class="fas fa-print me-1"></i>Print Now
+</button>
 
 <?php if ($sticker): ?>
 <!-- ============================================================
@@ -128,7 +149,7 @@ body { background: #f8fafc; font-family: Arial, sans-serif; color: #000; }
   <div class="sticker">
     <div class="sticker-company"><?= e($companyName) ?></div>
     <div style="text-align: center; margin-top: 1mm; margin-bottom: 0.5mm;">
-      <svg class="stickerBarcode" data-value="<?= e($job['barcode'] ?: $job['job_number']) ?>" style="display: inline-block; max-height: 14mm; max-width: 100%; object-fit: contain;"></svg>
+      <svg class="stickerBarcode" data-value="<?= e($jobBarcodeValue) ?>" style="display: inline-block; max-height: 14mm; max-width: 100%; object-fit: contain;"></svg>
       <div style="font-size: 8pt; font-weight: 900; margin-top: 0.5mm; line-height: 1;"><?= e($job['job_number']) ?> &mdash; <?= money((float)$job['estimated_cost']) ?></div>
     </div>
     <div class="sticker-device"><?= e($job['device_brand']) ?> <?= e($job['device_model']) ?></div>
@@ -215,16 +236,89 @@ body { background: #f8fafc; font-family: Arial, sans-serif; color: #000; }
 
 <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
 <script>
-window.onload = function() {
+const shouldAutoPrint = <?= $isPrint ? 'true' : 'false' ?>;
+let printTriggered = false;
+
+function triggerPrintNow(fromUserClick = false) {
+  if (printTriggered) return;
+  printTriggered = true;
+  try { window.focus(); } catch (e) {}
+
+  if (fromUserClick) {
+    try {
+      window.print();
+      return;
+    } catch (e) {}
+  }
+
+  setTimeout(function () {
+    try {
+      window.print();
+    } catch (e) {
+      try { document.execCommand('print', false, null); } catch (ignored) {}
+    }
+  }, 100);
+}
+
+window.addEventListener('afterprint', function () {
+  printTriggered = false;
+});
+
+function renderBarcode() {
+  function getAdaptiveBarcodeOptions(value, isSticker) {
+    const len = String(value || '').trim().length;
+    let width = isSticker ? 1.35 : 1.45;
+    if (len > 10) width = isSticker ? 1.25 : 1.35;
+    if (len > 14) width = isSticker ? 1.15 : 1.25;
+    if (len > 18) width = isSticker ? 1.05 : 1.15;
+
+    return {
+      format: 'CODE128',
+      width: width,
+      height: isSticker ? 14 : 38,
+      displayValue: !isSticker,
+      fontSize: 8,
+      textMargin: 2,
+      margin: isSticker ? 1.5 : 2,
+      lineColor: '#000',
+      background: '#fff'
+    };
+  }
+
   <?php if ($sticker): ?>
   var el = document.querySelector('.stickerBarcode');
   if (el) {
-    try { JsBarcode(el, el.getAttribute('data-value'), { format:'CODE128', width:1.6, height:16, displayValue:false, margin:0, lineColor:'#000', background:'#fff' }); } catch(e) {}
+    try {
+      const value = el.getAttribute('data-value');
+      JsBarcode(el, value, getAdaptiveBarcodeOptions(value, true));
+    } catch(e) {}
   }
   <?php else: ?>
-  try { JsBarcode('#ticketBarcode', '<?= e($job['job_number']) ?>', { format:'CODE128', width:1.5, height:40, displayValue:true, fontSize:9, margin:2, lineColor:'#000', background:'#fff' }); } catch(e) {}
+  try {
+    const value = <?= json_encode($jobBarcodeValue) ?>;
+    JsBarcode('#ticketBarcode', value, getAdaptiveBarcodeOptions(value, false));
+  } catch(e) {}
   <?php endif; ?>
-};
+}
+
+window.addEventListener('load', function () {
+  renderBarcode();
+
+  var printBtn = document.querySelector('.no-print .btn-primary');
+  if (printBtn) {
+    printBtn.addEventListener('click', function (event) {
+      event.preventDefault();
+      triggerPrintNow(true);
+    });
+  }
+
+  if (shouldAutoPrint) {
+    requestAnimationFrame(function () {
+      setTimeout(function () { triggerPrintNow(false); }, 180);
+    });
+    setTimeout(function () { triggerPrintNow(false); }, 1200);
+  }
+});
 </script>
 </body>
 </html>

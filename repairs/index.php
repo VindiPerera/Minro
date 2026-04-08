@@ -17,7 +17,7 @@ $params = [];
 if ($status !== 'all')   { $where[] = 'r.status=?'; $params[] = $status; }
 if ($priority !== 'all') { $where[] = 'r.priority=?'; $params[] = $priority; }
 if ($tech !== 'all')     { $where[] = 'r.assigned_to=?'; $params[] = $tech; }
-if ($search)             { $where[] = '(r.job_number LIKE ? OR c.name LIKE ? OR r.device_brand LIKE ? OR r.device_model LIKE ? OR r.device_imei LIKE ?)'; $s = "%$search%"; $params = array_merge($params, [$s,$s,$s,$s,$s]); }
+if ($search)             { $where[] = '(r.job_number LIKE ? OR r.barcode LIKE ? OR c.name LIKE ? OR r.device_brand LIKE ? OR r.device_model LIKE ? OR r.device_imei LIKE ?)'; $s = "%$search%"; $params = array_merge($params, [$s,$s,$s,$s,$s,$s]); }
 
 $whereClause = implode(' AND ', $where);
 $sql = "SELECT r.*, COALESCE(c.name,'—') as cname, COALESCE(c.phone,'') as cphone, COALESCE(u.name,'Unassigned') as tech_name FROM repair_jobs r LEFT JOIN customers c ON r.customer_id=c.id LEFT JOIN users u ON r.assigned_to=u.id WHERE $whereClause ORDER BY FIELD(r.status,'in_progress','pending','waiting_parts','completed','delivered','cancelled'), FIELD(r.priority,'express','urgent','normal'), r.created_at DESC";
@@ -144,7 +144,7 @@ require_once __DIR__ . '/../includes/header.php';
             <td>
               <div class="d-flex gap-1">
                 <a href="<?= BASE_URL ?>/repairs/view.php?id=<?= $job['id'] ?>" class="btn btn-sm btn-outline-primary" title="View"><i class="fas fa-eye"></i></a>
-                <a href="<?= BASE_URL ?>/repairs/job_ticket.php?id=<?= $job['id'] ?>" class="btn btn-sm btn-outline-secondary" title="Print Ticket" target="_blank"><i class="fas fa-print"></i></a>
+                <a href="<?= BASE_URL ?>/repairs/job_ticket.php?id=<?= $job['id'] ?>&print=1" class="btn btn-sm btn-outline-secondary" title="Print Ticket" target="_blank"><i class="fas fa-print"></i></a>
                 <?php if ($job['status'] === 'completed'): ?>
                 <a href="<?= BASE_URL ?>/repairs/invoice.php?id=<?= $job['id'] ?>" class="btn btn-sm btn-outline-success" title="Invoice"><i class="fas fa-file-invoice"></i></a>
                 <?php endif; ?>

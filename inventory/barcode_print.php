@@ -11,7 +11,9 @@ if (!$id) { header('Location: ' . BASE_URL . '/inventory/index.php'); exit; }
 $stmt = $db->prepare("SELECT * FROM products WHERE id=?");
 $stmt->execute([$id]);
 $product = $stmt->fetch();
-if (!$product || empty($product['barcode'])) {
+$barcodeValue = trim((string)($product['barcode'] ?? ''));
+$barcodeValue = preg_replace('/[\x00-\x1F\x7F]/u', '', $barcodeValue);
+if (!$product || $barcodeValue === '') {
     setFlash('error', 'Product not found or has no barcode.');
     header('Location: ' . BASE_URL . '/inventory/index.php');
     exit;
@@ -42,6 +44,16 @@ $isPrint     = isset($_GET['print']);
     flex-wrap: wrap;
   }
   .no-print-bar h6 { margin: 0; color: #f1f5f9; font-weight: 700; }
+  .print-hint { font-size: 11px; color: #94a3b8; }
+  .quick-print-fab {
+    position: fixed;
+    right: 18px;
+    bottom: 18px;
+    z-index: 9999;
+    border-radius: 999px;
+    padding: 10px 14px;
+    box-shadow: 0 8px 20px rgba(0,0,0,.35);
+  }
 
   .label-grid {
     display: flex;
@@ -111,6 +123,7 @@ $isPrint     = isset($_GET['print']);
       -webkit-print-color-adjust: exact;
     }
     .no-print-bar { display: none !important; }
+    .quick-print-fab { display: none !important; }
     .label-grid {
       display: block;
       padding: 0;
@@ -156,7 +169,8 @@ $isPrint     = isset($_GET['print']);
   </a>
   <div>
     <h6><i class="fas fa-barcode me-2 text-warning"></i>Print Barcode Labels — <?= e($product['name']) ?></h6>
-    <small class="text-muted">Barcode: <strong class="text-success"><?= e($product['barcode']) ?></strong></small>
+    <small class="text-muted">Barcode: <strong class="text-success"><?= e($barcodeValue) ?></strong></small>
+    <div class="print-hint mt-1">If dialog shows Save, change Destination to your printer and click Print.</div>
   </div>
 
   <div class="ms-auto d-flex align-items-center gap-2">
@@ -169,11 +183,15 @@ $isPrint     = isset($_GET['print']);
         title="Enter number of labels">
       <button type="submit" class="btn btn-sm btn-outline-secondary"><i class="fas fa-sync-alt"></i></button>
     </form>
-    <button onclick="window.print()" class="btn btn-sm btn-primary">
+    <button onclick="triggerPrintNow(true); return false;" class="btn btn-sm btn-primary">
       <i class="fas fa-print me-1"></i>Print
     </button>
   </div>
 </div>
+
+<button type="button" class="btn btn-primary quick-print-fab" onclick="triggerPrintNow(true); return false;">
+  <i class="fas fa-print me-1"></i>Print Now
+</button>
 
 <div class="label-grid" id="labelGrid">
   <?php for ($i = 0; $i < $qty; $i++): ?>
@@ -190,22 +208,66 @@ $isPrint     = isset($_GET['print']);
 
 <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
 <script>
-const barcodeValue = <?= json_encode($product['barcode']) ?>;
+const barcodeValue = <?= json_encode($barcodeValue) ?>;
 const total = <?= $qty ?>;
-for (let i = 0; i < total; i++) {
-  JsBarcode('.barcode-svg-' + i, barcodeValue, {
+const shouldAutoPrint = <?= $isPrint ? 'true' : 'false' ?>;
+let printTriggered = false;
+
+function getAdaptiveBarcodeOptions(value) {
+  const len = String(value || '').trim().length;
+  let width = 1.9;
+  if (len > 10) width = 1.7;
+  if (len > 14) width = 1.5;
+  if (len > 18) width = 1.3;
+  if (len > 24) width = 1.15;
+
+  return {
     format: 'CODE128',
-    width: 1.8,
-    height: 48,
+    width: width,
+    height: 44,
     displayValue: false,
     lineColor: '#000',
     background: '#ffffff',
-    margin: 0
-  });
+    margin: 2
+  };
 }
-<?php if ($isPrint): ?>
-window.onload = function() { setTimeout(() => window.print(), 400); };
-<?php endif; ?>
+
+function triggerPrintNow(fromUserClick = false) {
+  if (printTriggered) return;
+  printTriggered = true;
+  try { window.focus(); } catch (e) {}
+
+  if (fromUserClick) {
+    try {
+      window.print();
+      return;
+    } catch (e) {}
+  }
+
+  setTimeout(function () {
+    try {
+      window.print();
+    } catch (e) {
+      try { document.execCommand('print', false, null); } catch (ignored) {}
+    }
+  }, 100);
+}
+
+window.addEventListener('afterprint', function () {
+  printTriggered = false;
+});
+
+for (let i = 0; i < total; i++) {
+  JsBarcode('.barcode-svg-' + i, barcodeValue, getAdaptiveBarcodeOptions(barcodeValue));
+}
+window.addEventListener('load', function () {
+  if (shouldAutoPrint) {
+    requestAnimationFrame(function () {
+      setTimeout(function () { triggerPrintNow(false); }, 180);
+    });
+    setTimeout(function () { triggerPrintNow(false); }, 1200);
+  }
+});
 </script>
 </body>
 </html>

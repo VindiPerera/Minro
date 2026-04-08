@@ -70,6 +70,150 @@ input[type="number"] {
 
 .pmt-btn { flex: 1; padding: 9px; border: 2px solid #334155; background: #0f172a; color: #94a3b8; border-radius: 8px; cursor: pointer; font-size: 11.5px; font-weight: 600; transition: all .15s; text-align: center; }
 .pmt-btn:hover, .pmt-btn.active { border-color: #2563eb; color: #60a5fa; background: rgba(37,99,235,.15); }
+
+/* POS Light Theme Overrides */
+body.light-theme .pos-left,
+html.light-theme .pos-left {
+  background: #ffffff;
+}
+body.light-theme .pos-right,
+html.light-theme .pos-right {
+  background: #ffffff;
+  border-left-color: #e2e8f0;
+}
+body.light-theme .pos-top-bar,
+html.light-theme .pos-top-bar {
+  background: #ffffff;
+  border-bottom-color: #e2e8f0;
+}
+body.light-theme .products-area,
+html.light-theme .products-area {
+  background: #f8fafc;
+}
+body.light-theme .cart-header,
+body.light-theme .cart-footer,
+html.light-theme .cart-header,
+html.light-theme .cart-footer {
+  border-color: #e2e8f0;
+}
+body.light-theme .cart-body,
+html.light-theme .cart-body {
+  background: #ffffff;
+}
+
+body.light-theme .cat-pill {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  color: #475569;
+}
+body.light-theme .cat-pill:hover,
+body.light-theme .cat-pill.active {
+  background: rgba(37,99,235,.1);
+  border-color: #2563eb;
+  color: #2563eb;
+}
+
+body.light-theme .prod-card,
+html.light-theme .prod-card {
+  background: #ffffff;
+  border-color: #dbe5f0;
+}
+body.light-theme .prod-card:hover:not(.out),
+html.light-theme .prod-card:hover:not(.out) {
+  border-color: #2563eb;
+  background: rgba(37,99,235,.06);
+}
+body.light-theme .prod-icon {
+  background: rgba(37,99,235,.1);
+  color: #2563eb;
+}
+body.light-theme .prod-name,
+body.light-theme .ci-name,
+body.light-theme .ci-total,
+body.light-theme .totals-table td:last-child,
+body.light-theme .totals-table .grand td,
+body.light-theme .totals-table .balance td {
+  color: #0f172a !important;
+}
+body.light-theme .prod-price {
+  color: #2563eb;
+}
+
+body.light-theme .ci {
+  border-bottom-color: #e2e8f0;
+}
+body.light-theme .ci-price,
+body.light-theme .prod-stock,
+body.light-theme .totals-table td,
+body.light-theme .text-muted {
+  color: #64748b !important;
+}
+body.light-theme .ci-qty button,
+body.light-theme .ci-qty input {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  color: #0f172a;
+}
+body.light-theme .ci-qty button:hover {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #ffffff;
+}
+
+body.light-theme .totals-table .grand td {
+  border-top-color: #dbe5f0;
+}
+
+body.light-theme .pmt-btn {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  color: #475569;
+}
+body.light-theme .pmt-btn:hover,
+body.light-theme .pmt-btn.active {
+  border-color: #2563eb;
+  color: #2563eb;
+  background: rgba(37,99,235,.08);
+}
+
+body.light-theme #emptyCart i {
+  color: #94a3b8 !important;
+}
+body.light-theme #tDiscount {
+  color: #d97706 !important;
+}
+body.light-theme .balance,
+body.light-theme #tChange {
+  color: #16a34a !important;
+}
+
+body.light-theme #btnBarcodeMode,
+body.light-theme #btnHold {
+  border-color: #cbd5e1;
+  color: #475569;
+  background: #ffffff;
+}
+body.light-theme #btnBarcodeMode:hover,
+body.light-theme #btnHold:hover {
+  border-color: #2563eb;
+  color: #2563eb;
+  background: rgba(37,99,235,.08);
+}
+
+body.light-theme .btn-outline-danger {
+  border-color: #dc2626;
+  color: #dc2626;
+  background: #ffffff;
+}
+body.light-theme .btn-outline-danger:hover {
+  background: #dc2626;
+  color: #ffffff;
+}
+
+body.light-theme .fw-bold[style*="#f1f5f9"],
+html.light-theme .fw-bold[style*="#f1f5f9"] {
+  color: #0f172a !important;
+}
 </style>
 
 <div class="pos-wrap">
@@ -108,6 +252,7 @@ input[type="number"] {
              data-id="<?= $p['id'] ?>"
              data-name="<?= e($p['name']) ?>"
              data-code="<?= e($p['code']) ?>"
+             data-barcode="<?= e($p['barcode'] ?? '') ?>"
              data-price="<?= $p['selling_price'] ?>"
              data-stock="<?= $p['stock_quantity'] ?>"
              data-brand="<?= e($p['brand'] ?? '') ?>"
@@ -286,9 +431,10 @@ function filterProducts() {
   $(".prod-card").each(function() {
     const name   = $(this).data("name").toLowerCase();
     const code   = $(this).data("code").toLowerCase();
+    const barcode = String($(this).data("barcode") || "").toLowerCase();
     const pBrand = $(this).data("brand");
     const pType  = $(this).data("type");
-    const match = (name.includes(search) || code.includes(search));
+    const match = (name.includes(search) || code.includes(search) || barcode.includes(search));
     let brandOk = true;
     if (brand && brand !== "all") {
       if (brand === "__parts")       brandOk = pType === "part";
@@ -308,6 +454,41 @@ $(document).on("click", ".cat-pill", function() {
 
 // Barcode scan (Enter key in search)
 let barcodeMode = false;
+function normalizeScanValue(value) {
+  let text = String(value || "")
+    .replace(/[\u0000-\u001F\u007F]/g, "")
+    .trim()
+    .toUpperCase();
+  if (text.startsWith("]C1")) text = text.slice(3).trim();
+  return text;
+}
+
+function isSameCode(candidate, scan) {
+  const left = normalizeScanValue(candidate);
+  const right = normalizeScanValue(scan);
+  if (!left || !right) return false;
+  if (left === right) return true;
+  return left.replace(/\s+/g, "") === right.replace(/\s+/g, "");
+}
+
+function findProductByScan(scanValue, allowNameFallback = false) {
+  const scan = normalizeScanValue(scanValue);
+  if (!scan) return null;
+
+  let product = allProducts.find(p => isSameCode(p.barcode, scan));
+  if (product) return product;
+
+  product = allProducts.find(p => isSameCode(p.code, scan));
+  if (product) return product;
+
+  if (allowNameFallback) {
+    product = allProducts.find(p => normalizeScanValue(p.name) === scan);
+    if (product) return product;
+  }
+
+  return null;
+}
+
 $("#btnBarcodeMode").on("click", function() {
   barcodeMode = !barcodeMode;
   $(this).toggleClass("btn-outline-secondary btn-primary");
@@ -315,11 +496,12 @@ $("#btnBarcodeMode").on("click", function() {
 });
 $("#productSearch").on("keydown", function(e) {
   if (e.key === "Enter") {
-    const q = $(this).val().trim();
-    if (q) {
-      const prod = allProducts.find(p => p.code.toLowerCase() === q.toLowerCase() || p.name.toLowerCase() === q.toLowerCase());
+    const q = $(this).val();
+    const qNormalized = normalizeScanValue(q);
+    if (qNormalized) {
+      const prod = findProductByScan(qNormalized, !barcodeMode);
       if (prod) { addToCart(prod); $(this).val("").trigger("input"); }
-      else { toast("Product not found: " + q, "error"); }
+      else { toast("Product not found: " + qNormalized, "error"); }
     }
   }
 });
@@ -428,7 +610,17 @@ $("#btnExact").on("click", function() {
 // Clear cart
 $("#btnClearCart").on("click", function() {
   if (cart.length === 0) return;
-  Swal.fire({ title:"Clear Cart?", text:"Remove all items from the cart?", icon:"warning", showCancelButton:true, confirmButtonColor:"#dc2626", cancelButtonColor:"#334155", background:"#1e293b", color:"#e2e8f0" })
+  const isLightTheme = document.body.classList.contains("light-theme") || document.documentElement.classList.contains("light-theme");
+  Swal.fire({
+    title:"Clear Cart?",
+    text:"Remove all items from the cart?",
+    icon:"warning",
+    showCancelButton:true,
+    confirmButtonColor:"#dc2626",
+    cancelButtonColor: isLightTheme ? "#cbd5e1" : "#334155",
+    background: isLightTheme ? "#ffffff" : "#1e293b",
+    color: isLightTheme ? "#0f172a" : "#e2e8f0"
+  })
   .then(r => { if (r.isConfirmed) { cart = []; renderCart(); } });
 });
 
